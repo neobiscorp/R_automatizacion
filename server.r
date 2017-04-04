@@ -206,200 +206,56 @@ shinyServer(function(input, output, session) {
     
     numSheets <- NROW(mysheets) # Number of sheets
     namSheets <- names(mysheets) # obtain names of sheets
+    new <- data.frame()
+    aut <- character()
     
-    #
-    # for (i in 1:numSheets) {
-    #   nam <- paste("aut", i, sep = "")
-    #   assign(nam, mysheets[namSheets[i]])
-    #   assign(nam, do.call(rbind.data.frame, get (paste0 ("aut", i))))
-    #   #get (paste0 ("aut", i)) <- do.call(rbind.data.frame, get (paste0 ("aut", i)))
-    #   if(NCOL(paste("aut", i, sep = ""))==0){
-    #     session$sendCustomMessage(
-    #       type = 'testmessage',
-    #       message = paste("La primera fila de la hoja `",namSheets[i],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
-    #     )
-    #   }
-    #   colnames(paste("aut", i, sep = "")) <- paste(namSheets[i], names(paste("aut", i, sep = "")), sep = " $ ")
-    #   new <- cbind(get (paste0 ("aut", i)))
-    #   }
-    #
-    
-    if (numSheets >= 1) {
-      aut <- mysheets[namSheets[1]] #Call the name of the first sheet and its columns
-      aut <- do.call(rbind.data.frame, aut) 
-      if (NCOL(aut) == 0) {
-        session$sendCustomMessage( #Custom message in case the first rows of that sheet are empty
+    for (i in 1:numSheets) {
+      aut[i]<- mysheets[namSheets[i]]
+      if (length(aut[[i]]) == 0) {
+        session$sendCustomMessage(
           type = 'testmessage',
           message = paste(
             "La primera fila de la hoja `",
-            namSheets[1],
+            namSheets[i],
             "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
             sep = ""
           )
         )
       }
-      colnames(aut) <-
-        paste(namSheets[1], names(aut), sep = " $ ") #every column will be named after the name of the sheet
-      new <- aut #bind the variables to an array
+      names(aut[[i]]) <-  paste(namSheets[i], names(aut[[i]]), sep = " $ ")
     }
     
-    if (numSheets >= 2) {
-      aut2 <- mysheets[namSheets[2]] 
-      aut2 <-
-        do.call(rbind.data.frame, aut2) 
-      if (NCOL(aut2) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[2],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut2) <-
-        paste(namSheets[2], names(aut2), sep = " $ ")
-      new <- cbind(aut, aut2)
+    if (numSheets == 1) {
+      new <- do.call(rbind.data.frame, aut) 
     }
-    
-    if (numSheets >= 3) {
-      aut3 <- mysheets[namSheets[3]]
-      aut3 <-
-        do.call(rbind.data.frame, aut3) 
-      if (NCOL(aut3) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[3],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut3) <-
-        paste(namSheets[3], names(aut3), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3)
+    if (numSheets == 2) {
+      new <- cbind(aut[[1]],aut[[2]])
     }
-    
-    if (numSheets >= 4) {
-      aut4 <- mysheets[namSheets[4]] 
-      aut4 <-
-        do.call(rbind.data.frame, aut4) 
-      if (NCOL(aut4) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[4],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut4) <-
-        paste(namSheets[4], names(aut4), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3, aut4)
+    if (numSheets == 3) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]])
     }
-    
-    if (numSheets >= 5) {
-      aut5 <- mysheets[namSheets[5]]
-      aut5 <-
-        do.call(rbind.data.frame, aut5)
-      if (NCOL(aut5) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[5],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut5) <-
-        paste(namSheets[5], names(aut5), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3, aut4, aut5)
+    if (numSheets == 4) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]])
     }
-    
-    if (numSheets >= 6) {
-      aut6 <- mysheets[namSheets[6]] 
-      aut6 <-
-        do.call(rbind.data.frame, aut6) 
-      if (NCOL(aut6) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[6],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut6) <-
-        paste(namSheets[6], names(aut6), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3, aut4, aut5, aut6)
+    if (numSheets == 5) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]])
     }
-    if (numSheets >= 7) {
-      aut7 <- mysheets[namSheets[7]] 
-      aut7 <-
-        do.call(rbind.data.frame, aut7) 
-      if (NCOL(aut7) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[7],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut7) <-
-        paste(namSheets[7], names(aut7), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7)
+    if (numSheets == 6) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]],aut[[6]])
     }
-    if (numSheets >= 8) {
-      aut8 <- mysheets[namSheets[8]] 
-      aut8 <-
-        do.call(rbind.data.frame, aut8) 
-      if (NCOL(aut8) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[8],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut8) <-
-        paste(namSheets[8], names(aut8), sep = " $ ") 
-      new <- cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7, aut8)
+    if (numSheets == 7) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]],aut[[6]],aut[[7]])
     }
-    if (numSheets >= 9) {
-      aut9 <- mysheets[namSheets[9]] 
-      aut9 <-
-        do.call(rbind.data.frame, aut9) 
-      if (NCOL(aut9) == 0) {
-        session$sendCustomMessage(
-          type = 'testmessage',
-          message = paste(
-            "La primera fila de la hoja `",
-            namSheets[9],
-            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
-            sep = ""
-          )
-        )
-      }
-      colnames(aut9) <-
-        paste(namSheets[9], names(aut9), sep = " $ ") 
-      new <-
-        cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7, aut8, aut9)
+    if (numSheets == 8) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]],aut[[6]],aut[[7]],aut[[8]])
     }
+    if (numSheets == 9) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]],aut[[6]],aut[[7]],aut[[8]],aut[[9]])
+    }
+    if (numSheets >= 10) {
+      new <- cbind(aut[[1]],aut[[2]],aut[[3]],aut[[4]],aut[[5]],aut[[6]],aut[[7]],aut[[8]],aut[[9]],aut[[10]])
+    }
+
     new
   })
   
