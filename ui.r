@@ -4,15 +4,6 @@ library(RMySQL)
 library(shinyBS)
 library(shinyjs)
 library(shinythemes)
-library(DBI)
-library(pool)
-
-pool <- dbPool(
-  drv = RMySQL::MySQL(),
-  user='root', 
-  password='', 
-  dbname='neobis', 
-  host='localhost')
 
 #Establish an SQL conection Function
 sqlQuery <- function (query) {
@@ -24,7 +15,7 @@ sqlQuery <- function (query) {
   # send Query to btain result set
   rs <- dbSendQuery(DB, query)
   # get elements from result sets and convert to dataframe
-  result <- fetch(rs,-1)
+  result <- fetch(rs, -1)
   # close db connection
   dbDisconnect(DB)
   # return the dataframe
@@ -41,7 +32,8 @@ jsResetCode <- "shinyjs.refresh = function() {history.go(0)}"
 #Start Shiny User Interfase
 shinyUI(
   fluidPage
-  (#load the css theme of the shiny app
+  (
+    #load the css theme of the shiny app
     theme = shinytheme("simplex"),
     #load ShinyJS
     useShinyjs(),
@@ -49,8 +41,7 @@ shinyUI(
     #Call Neobis img css
     tags$head(
       tags$style(type = "text/css",
-                 "#image img {max-width: 100%; height: auto;}"),
-      tags$title("Neobis")
+                 "#image img {max-width: 100%; height: auto;}")
     ),
     #Sidebar Layout selected for this proyect
     sidebarLayout(
@@ -58,7 +49,7 @@ shinyUI(
       sidebarPanel(
         #Call Neobis img
         imageOutput("image", height = 150),
-        #Dates of facturation and period
+        #Create Dates of facturation and period
         div(style = "display: inline-block; width: 5%;", icon(
           "calendar", class = NULL, lib = "font-awesome"
         )),
@@ -66,21 +57,55 @@ shinyUI(
           style = "display: inline-block; width: 45%;",
           dateInput(
             "factmonth",
-            label = h4("Mes de Facturación"),
+            label = h4(
+              "Mes de Facturación",
+              tags$style(type = "text/css", "#qDateMonth {vertical-align: top;}"),
+              bsButton(
+                "qDateMonth",
+                label = "",
+                icon = icon("question"),
+                style = "info",
+                size = "extra-small"
+              )
+            ),
             startview = "year",
             format = "mm/yyyy",
             weekstart = 1,
             language = "es"
+          ),
+          bsPopover(
+            id = "qDateMonth",
+            title = "Mes de Facturación",
+            content = "Ingrese el Mes de facturacion.",
+            placement = "right",
+            trigger = "hover"
           )
         ),
         div(
           style = "display: inline-block; width: 45%;",
           dateInput(
             "factdate",
-            label = h4("Fecha de Facturación"),
+            label = h4(
+              "Fecha de Facturación",
+              tags$style(type = "text/css", "#qDateFact {vertical-align: top;}"),
+              bsButton(
+                "qDateFact",
+                label = "",
+                icon = icon("question"),
+                style = "info",
+                size = "extra-small"
+              )
+            ),
             format = "dd/mm/yyyy",
             weekstart = 1,
             language = "es"
+          ),
+          bsPopover(
+            id = "qDateFact",
+            title = "Fecha de Facturación",
+            content = "Ingrese la fecha de facturacion.",
+            placement = "right",
+            trigger = "hover"
           )
         ),
         div(style = "display: inline-block; width: 5%;", icon(
@@ -90,37 +115,89 @@ shinyUI(
           style = "display: inline-block; width: 91%;",
           dateRangeInput(
             'dateRange',
-            label = h4("Periodo de Facturación"),
+            label = h4(
+              "Periodo de Facturación",
+              tags$style(type = "text/css", "#qDatePer {vertical-align: top;}"),
+              bsButton(
+                "qDatePer",
+                label = "",
+                icon = icon("question"),
+                style = "info",
+                size = "extra-small"
+              )
+            ),
             format = "dd/mm/yyyy",
             weekstart = 1,
             language = "es",
             separator = " Hasta "
+          ),
+          bsPopover(
+            id = "qDatePer",
+            title = "Periodo de Facturacion",
+            content = "Ingrese la fecha de Inicio y fin del periodo de Facturacion.",
+            placement = "right",
+            trigger = "hover"
           )
         ),
-        #Inputs for client and provider
+        #Creaete Inputs for client and provider
         
         div(
           style = "display: inline-block; width: 96%;",
           selectInput(
             "Client",
-            label = h4("Cliente"),
+            label = h4(
+              "Cliente",
+              tags$style(type = "text/css", "#qclient {vertical-align: top;}"),
+              bsButton(
+                "qclient",
+                label = "",
+                icon = icon("question"),
+                style = "info",
+                size = "extra-small"
+              )
+            ),
             choices = clientes,
             selected = ""
+          ),
+          bsPopover(
+            id = "qclient",
+            title = "Cliente",
+            content = "Seleccione el cliente de la factura a ingresar y luego el proveedor correspondiente.",
+            placement = "right",
+            trigger = "hover"
           )
         ),
         div(style = "display: inline-block; width: 96%;", uiOutput("Provider")),
-        #Conditional for provider Coasin, Call numeric input for UF
+        #Conditional for provider Coasin, Create numeric input for UF
         conditionalPanel(
           condition = "input.Prov == 'Coasin'",
           div(
             style = "display: inline-block; width: 96%;",
             numericInput(
               "UF",
-              label = h4("Ingrese Valor UF"),
+              label = h4(
+                "Ingrese Valor UF",
+                tags$style(type = "text/css", "#qUF {vertical-align: top;}"),
+                bsButton(
+                  "qUF",
+                  label = "",
+                  icon = icon("question"),
+                  style = "info",
+                  size = "extra-small"
+                )
+              ),
+              #Customizable values for UF
               value = 26444,
               min = 25000,
               max = 28000,
               step = 1
+            ),
+            bsPopover(
+              id = "qUF",
+              title = "Valor UF",
+              content = "Ingrese el valor UF que aparece en la factura o el valor UF que corresponda al dia de la factura.",
+              placement = "right",
+              trigger = "hover"
             )
           )
         ),
@@ -152,9 +229,27 @@ shinyUI(
         ),
         #Optional Condition, if the checkbox is selected, the show a textInput to name the facture
         div(
-          style = "display: inline-block; width: 85%;",
-          checkboxInput("fact", "Seleccionar nombre de la factura")
+          style = "display: inline-block; ",
+          checkboxInput("fact", "Seleccionar nombre de la factura ")
         ),
+        div(
+          style = "display: inline-block;",
+          bsButton(
+            "qFactName",
+            label = "",
+            icon = icon("question"),
+            style = "info",
+            size = "extra-small"
+          )
+        ),
+        bsPopover(
+          id = "qFactName",
+          title = "Ingresar nombre de Factura",
+          content = "Ingrese el nombre de factura deseado, ese sera el que aparecera en el campo nofacture y sera el nombre del archivo.",
+          placement = "right",
+          trigger = "hover"
+        )
+        ,
         div(
           style = "display: inline-block; width: 96%;",
           conditionalPanel(condition = "input.fact == true",
@@ -162,6 +257,7 @@ shinyUI(
                              "facture",
                              label = h4("Nombre de factura personalizada")
                            ))
+          
         ),
         #buttons to verify data and reboot app
         div(
@@ -250,11 +346,11 @@ shinyUI(
               size = "extra-small"
             )
           ),
-          #The panels only appear if the user use the verify button
+          #The panels only appear if the user use the verify button and the fields belong to that provider
           conditionalPanel(condition = "input.execute", h4("Selección de Campos")),
           div(
             conditionalPanel(
-              condition = "input.execute",
+              condition = "output.campos.includes('noappel')",
               column(
                 3,
                 selectizeInput(
@@ -516,7 +612,7 @@ shinyUI(
             ),
             br(),
             conditionalPanel(
-              condition = "input.execute",
+              condition = "output.campos.includes('noappel')",
               div(style = "text-align: center; margin-top: 200px;", bsButton(
                 "final_exec",
                 " Crear CSV!",

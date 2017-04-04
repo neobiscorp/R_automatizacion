@@ -1,24 +1,14 @@
 #Load Needed Libraries
 library(shiny)
-library(XLConnect)
 library(RMySQL)
 library(openxlsx)
 library(shinyBS)
 library(shinyjs)
 library(stringr)
 library(readxl)
-library(DBI)
-library(pool)
 
 #Increase the maxium size of an uploaded file to 30mb
 options(shiny.maxRequestSize = 45 * 1024 ^ 2)
-
-pool <- dbPool(
-  drv = RMySQL::MySQL(),
-  user='root', 
-  password='', 
-  dbname='neobis', 
-  host='localhost')
 
 #Establish an SQL conection Function
 sqlQuery <- function (query) {
@@ -30,7 +20,7 @@ sqlQuery <- function (query) {
   # send Query to btain result set
   rs <- dbSendQuery(DB, query)
   # get elements from result sets and convert to dataframe
-  result <- fetch(rs, -1)
+  result <- fetch(rs,-1)
   # close db connection
   dbDisconnect(DB)
   # return the dataframe
@@ -58,7 +48,7 @@ ProvQuery <- function(cliente) {
   return(proveedores[, 1])
 }
 
-#function to read all the sheets
+#function to read all the sheets of the xlsx worksheet
 read_excel_allsheets <- function(filename) {
   sheets <- readxl::excel_sheets(filename)
   x <-
@@ -136,14 +126,13 @@ shinyServer(function(input, output, session) {
   client_prov <- reactive({
     ProvQuery(input$Client)
   })
-  
   output$Provider <- renderUI({
     selectInput(
       "Prov",
       label = h4("Proveedor"),
       selected = "",
       as.list(client_prov())
-    )##here we call the function test
+    )
   })
   
   #Get the selected fields
@@ -208,8 +197,9 @@ shinyServer(function(input, output, session) {
   #Function to read the headers of the file
   contentsrea <- reactive({
     inFile <- input$files
-    if (is.null(inFile)){
-      return(NULL)}
+    if (is.null(inFile)) {
+      return(NULL)
+    }
     file.copy(inFile$datapath, paste(inFile$datapath, ".xlsx", sep = ""))
     mysheets <<-
       read_excel_allsheets(paste(inFile$datapath, ".xlsx", sep = ""))
@@ -217,135 +207,198 @@ shinyServer(function(input, output, session) {
     numSheets <- NROW(mysheets) # Number of sheets
     namSheets <- names(mysheets) # obtain names of sheets
     
+    #
+    # for (i in 1:numSheets) {
+    #   nam <- paste("aut", i, sep = "")
+    #   assign(nam, mysheets[namSheets[i]])
+    #   assign(nam, do.call(rbind.data.frame, get (paste0 ("aut", i))))
+    #   #get (paste0 ("aut", i)) <- do.call(rbind.data.frame, get (paste0 ("aut", i)))
+    #   if(NCOL(paste("aut", i, sep = ""))==0){
+    #     session$sendCustomMessage(
+    #       type = 'testmessage',
+    #       message = paste("La primera fila de la hoja `",namSheets[i],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+    #     )
+    #   }
+    #   colnames(paste("aut", i, sep = "")) <- paste(namSheets[i], names(paste("aut", i, sep = "")), sep = " $ ")
+    #   new <- cbind(get (paste0 ("aut", i)))
+    #   }
+    #
+    
     if (numSheets >= 1) {
-      aut <- mysheets[namSheets[1]] # juntar hoja 1 a variable
-      aut <- do.call(rbind.data.frame, aut) # convertir hoja 1 a df
-      if(NCOL(aut)==0){
-        session$sendCustomMessage(
+      aut <- mysheets[namSheets[1]] #Call the name of the first sheet and its columns
+      aut <- do.call(rbind.data.frame, aut) 
+      if (NCOL(aut) == 0) {
+        session$sendCustomMessage( #Custom message in case the first rows of that sheet are empty
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[1],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[1],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut) <-
-        paste(namSheets[1], names(aut), sep = " $ ") # cambiar nombre de columnas
-      new <- aut
+        paste(namSheets[1], names(aut), sep = " $ ") #every column will be named after the name of the sheet
+      new <- aut #bind the variables to an array
     }
     
     if (numSheets >= 2) {
-      aut2 <- mysheets[namSheets[2]] # juntar hoja 2 a variable
+      aut2 <- mysheets[namSheets[2]] 
       aut2 <-
-        do.call(rbind.data.frame, aut2) # convertir hoja 2 a df
-      if(NCOL(aut2)==0){
+        do.call(rbind.data.frame, aut2) 
+      if (NCOL(aut2) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[2],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[2],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut2) <-
-        paste(namSheets[2], names(aut2), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[2], names(aut2), sep = " $ ")
       new <- cbind(aut, aut2)
     }
     
     if (numSheets >= 3) {
-      aut3 <- mysheets[namSheets[3]] # juntar hoja 3 a variable
+      aut3 <- mysheets[namSheets[3]]
       aut3 <-
-        do.call(rbind.data.frame, aut3) # convertir hoja 3 a df
-      if(NCOL(aut3)==0){
+        do.call(rbind.data.frame, aut3) 
+      if (NCOL(aut3) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[3],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[3],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut3) <-
-        paste(namSheets[3], names(aut3), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[3], names(aut3), sep = " $ ") 
       new <- cbind(aut, aut2, aut3)
     }
     
     if (numSheets >= 4) {
-      aut4 <- mysheets[namSheets[4]] # juntar hoja 4 a variable
+      aut4 <- mysheets[namSheets[4]] 
       aut4 <-
-        do.call(rbind.data.frame, aut4) # convertir hoja 4 a df
-      if(NCOL(aut4)==0){
+        do.call(rbind.data.frame, aut4) 
+      if (NCOL(aut4) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[4],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[4],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut4) <-
-        paste(namSheets[4], names(aut4), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[4], names(aut4), sep = " $ ") 
       new <- cbind(aut, aut2, aut3, aut4)
     }
     
     if (numSheets >= 5) {
-      aut5 <- mysheets[namSheets[5]] # juntar hoja 5 a variable
+      aut5 <- mysheets[namSheets[5]]
       aut5 <-
-        do.call(rbind.data.frame, aut5) # convertir hoja 5 a df
-      if(NCOL(aut5)==0){
+        do.call(rbind.data.frame, aut5)
+      if (NCOL(aut5) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[5],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[5],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut5) <-
-        paste(namSheets[5], names(aut5), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[5], names(aut5), sep = " $ ") 
       new <- cbind(aut, aut2, aut3, aut4, aut5)
     }
     
     if (numSheets >= 6) {
-      aut6 <- mysheets[namSheets[6]] # juntar hoja 6 a variable
+      aut6 <- mysheets[namSheets[6]] 
       aut6 <-
-        do.call(rbind.data.frame, aut6) # convertir hoja 6 a df
-      if(NCOL(aut6)==0){
+        do.call(rbind.data.frame, aut6) 
+      if (NCOL(aut6) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[6],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[6],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut6) <-
-        paste(namSheets[6], names(aut6), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[6], names(aut6), sep = " $ ") 
       new <- cbind(aut, aut2, aut3, aut4, aut5, aut6)
     }
     if (numSheets >= 7) {
-      aut7 <- mysheets[namSheets[7]] # juntar hoja 7 a variable
+      aut7 <- mysheets[namSheets[7]] 
       aut7 <-
-        do.call(rbind.data.frame, aut7) # convertir hoja 7 a df
-      if(NCOL(aut7)==0){
+        do.call(rbind.data.frame, aut7) 
+      if (NCOL(aut7) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[7],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[7],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut7) <-
-        paste(namSheets[7], names(aut7), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[7], names(aut7), sep = " $ ") 
       new <- cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7)
     }
     if (numSheets >= 8) {
-      aut8 <- mysheets[namSheets[8]] # juntar hoja 8 a variable
+      aut8 <- mysheets[namSheets[8]] 
       aut8 <-
-        do.call(rbind.data.frame, aut8) # convertir hoja 8 a df
-      if(NCOL(aut8)==0){
+        do.call(rbind.data.frame, aut8) 
+      if (NCOL(aut8) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[8],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[8],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut8) <-
-        paste(namSheets[8], names(aut8), sep = " $ ") # cambiar nombre de columnas
+        paste(namSheets[8], names(aut8), sep = " $ ") 
       new <- cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7, aut8)
     }
     if (numSheets >= 9) {
-      aut9 <- mysheets[namSheets[9]] # juntar hoja 9 a variable
+      aut9 <- mysheets[namSheets[9]] 
       aut9 <-
-        do.call(rbind.data.frame, aut9) # convertir hoja 9 a df
-      if(NCOL(aut9)==0){
+        do.call(rbind.data.frame, aut9) 
+      if (NCOL(aut9) == 0) {
         session$sendCustomMessage(
           type = 'testmessage',
-          message = paste("La primera fila de la hoja `",namSheets[9],"` del archivo esta vacia, borrar primeras lineas vacias y reintentar",sep = "")
+          message = paste(
+            "La primera fila de la hoja `",
+            namSheets[9],
+            "` del archivo esta vacia, borrar primeras lineas vacias y reintentar",
+            sep = ""
+          )
         )
       }
       colnames(aut9) <-
-        paste(namSheets[9], names(aut9), sep = " $ ") # cambiar nombre de columnas
-      new <- cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7, aut8, aut9)
+        paste(namSheets[9], names(aut9), sep = " $ ") 
+      new <-
+        cbind(aut, aut2, aut3, aut4, aut5, aut6, aut7, aut8, aut9)
     }
     new
   })
@@ -515,14 +568,13 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(session, "m_hors_voix", choices = names(contentsrea()))
     updateSelectizeInput(session, "m_hors_data", choices = names(contentsrea()))
     updateTextInput(session, "campos", value = campos())
-    updateCheckboxInput(session, "fact", value = )
+    updateCheckboxInput(session, "fact", value =)
   })
   
-
+  
   #Main Function to create the final output
   observeEvent(input$final_exec, {
-    
-    #call vars
+    #call variables
     moisfacturation <- factmonth()
     datefacturation <- factdate()
     datefacture1 <- startdate()
@@ -554,7 +606,7 @@ shinyServer(function(input, output, session) {
     noappelSheet <- noappel[[1]][1]
     noappel <- noappel[[1]][2]
     
-    #if 1 or 2 fields were selected in m_total and montant_charge, get them
+    #If 1 or 2 fields were selected in m_total and montant_charge, get them
     if (NROW(m_tot) == 1) {
       m_total <- strsplit(m_tot, " \\$ ")
       m_totalSheet <- m_total[[1]][1]
@@ -597,8 +649,10 @@ shinyServer(function(input, output, session) {
       centrefacturation <- centrefacturation[[1]][2]
     }
     #get the headers of the selected fields
-    if(noappelSheet == m_totalSheet && montant_chargeSheet == libelle_chargeSheet && noappelSheet == montant_chargeSheet
-       && noappelSheet == libelle_chargeSheet){
+    if (noappelSheet == m_totalSheet &&
+        montant_chargeSheet == libelle_chargeSheet &&
+        noappelSheet == montant_chargeSheet
+        && noappelSheet == libelle_chargeSheet) {
       all_headers <- mysheets[noappelSheet]
       all_headers <- do.call(rbind.data.frame, all_headers)
       headers_noappel <- all_headers
@@ -608,38 +662,39 @@ shinyServer(function(input, output, session) {
       
       if (prove == "Adessa Enlaces") {
         headers_centrefacturation <- all_headers
-        col_centrefacturation <- match(centrefacturation, names(headers_centrefacturation))
+        col_centrefacturation <-
+          match(centrefacturation, names(headers_centrefacturation))
       }
-      }
+    }
     else{
-    headers_noappel <-
-      read.xlsx(inFile$datapath, sheet = noappelSheet, rows = 1)
-    headers_m_total <-
-      read.xlsx(inFile$datapath, sheet = m_totalSheet, rows = 1)
-    headers_montant_charge <-
-      read.xlsx(inFile$datapath, sheet = montant_chargeSheet, rows = 1)
-    headers_libelle_charge <-
-      read.xlsx(inFile$datapath, sheet = libelle_chargeSheet, rows = 1)
-    
-    if (prove == "Adessa Enlaces") {
-      headers_centrefacturation <-
-        read.xlsx(inFile$datapath, sheet = centrefacturationSheet, rows = 1)
-      col_centrefacturation <-
-        match(centrefacturation, names(headers_centrefacturation))
-    }
-    if (NROW(montant_char) == 2 && NROW(m_tot) == 2) {
-      headers_m_total2 <-
-        read.xlsx(inFile$datapath, sheet = m_totalSheet2, rows = 1)
-      headers_montant_charge2 <-
-        read.xlsx(inFile$datapath, sheet = montant_chargeSheet2, rows = 1)
+      headers_noappel <-
+        read.xlsx(inFile$datapath, sheet = noappelSheet, rows = 1)
+      headers_m_total <-
+        read.xlsx(inFile$datapath, sheet = m_totalSheet, rows = 1)
+      headers_montant_charge <-
+        read.xlsx(inFile$datapath, sheet = montant_chargeSheet, rows = 1)
+      headers_libelle_charge <-
+        read.xlsx(inFile$datapath, sheet = libelle_chargeSheet, rows = 1)
       
-      col_m_total2 <- match(m_total2, names(headers_m_total2))
-      col_montant_charge2 <-
-        match(montant_charge2, names(headers_montant_charge2))
-      
-      col_m_total[[2]] <- col_m_total2
-      col_montant_charge[[2]] <- col_montant_charge2
-    }
+      if (prove == "Adessa Enlaces") {
+        headers_centrefacturation <-
+          read.xlsx(inFile$datapath, sheet = centrefacturationSheet, rows = 1)
+        col_centrefacturation <-
+          match(centrefacturation, names(headers_centrefacturation))
+      }
+      if (NROW(montant_char) == 2 && NROW(m_tot) == 2) {
+        headers_m_total2 <-
+          read.xlsx(inFile$datapath, sheet = m_totalSheet2, rows = 1)
+        headers_montant_charge2 <-
+          read.xlsx(inFile$datapath, sheet = montant_chargeSheet2, rows = 1)
+        
+        col_m_total2 <- match(m_total2, names(headers_m_total2))
+        col_montant_charge2 <-
+          match(montant_charge2, names(headers_montant_charge2))
+        
+        col_m_total[[2]] <- col_m_total2
+        col_montant_charge[[2]] <- col_montant_charge2
+      }
     }
     #get the column number of the selected field
     col_noappel <- match(noappel, names(headers_noappel))
@@ -648,25 +703,37 @@ shinyServer(function(input, output, session) {
       match(montant_charge, names(headers_montant_charge))
     col_libelle_charge <-
       match(libelle_charge, names(headers_libelle_charge))
-    if (NROW(montant_char) == 2 && NROW(m_tot) == 2 && m_totalSheet2==noappelSheet && montant_chargeSheet2==noappelSheet) {
+    if (NROW(montant_char) == 2 &&
+        NROW(m_tot) == 2 &&
+        m_totalSheet2 == noappelSheet &&
+        montant_chargeSheet2 == noappelSheet) {
       headers_m_total2 <- all_headers
       headers_montant_charge2 <- all_headers
       col_m_total2 <- match(m_total2, names(headers_m_total2))
-      col_montant_charge2 <- match(montant_charge2, names(headers_montant_charge2))
+      col_montant_charge2 <-
+        match(montant_charge2, names(headers_montant_charge2))
       col_m_total[[2]] <- col_m_total2
       col_montant_charge[[2]] <- col_montant_charge2
     }
     #get the data from the file
-    
-    if(noappelSheet == m_totalSheet && montant_chargeSheet == libelle_chargeSheet && noappelSheet == montant_chargeSheet
-       && noappelSheet == libelle_chargeSheet){
-      if (prove == "Adessa Enlaces" && noappelSheet==centrefacturationSheet) {
+    if (noappelSheet == m_totalSheet &&
+        montant_chargeSheet == libelle_chargeSheet &&
+        noappelSheet == montant_chargeSheet
+        && noappelSheet == libelle_chargeSheet) {
+      if (prove == "Adessa Enlaces" &&
+          noappelSheet == centrefacturationSheet) {
         data <-
           read.xlsx(
             inFile$datapath,
             sheet = centrefacturationSheet,
             startRow = 1,
-            cols = c(col_noappel,col_m_total,col_montant_charge,col_libelle_charge,col_centrefacturation)
+            cols = c(
+              col_noappel,
+              col_m_total,
+              col_montant_charge,
+              col_libelle_charge,
+              col_centrefacturation
+            )
           )
         rows <- nrow(data)
         noappel_Data <- data[noappel]
@@ -675,13 +742,16 @@ shinyServer(function(input, output, session) {
         libelle_charge_Data <- data[libelle_charge]
         centrefacturation_charge_Data <- data[centrefacturation]
       }
-      if (NROW(montant_char) == 2 && NROW(m_tot) == 2 && m_totalSheet2==noappelSheet && montant_chargeSheet2==noappelSheet) {
+      if (NROW(montant_char) == 2 &&
+          NROW(m_tot) == 2 &&
+          m_totalSheet2 == noappelSheet &&
+          montant_chargeSheet2 == noappelSheet) {
         data <-
           read.xlsx(
             inFile$datapath,
             sheet = noappelSheet,
             startRow = 1,
-            cols = c(col_noappel,col_libelle_charge)
+            cols = c(col_noappel, col_libelle_charge)
           )
         m_total_Data <-
           read.xlsx(
@@ -702,21 +772,27 @@ shinyServer(function(input, output, session) {
         libelle_charge_Data <- data[libelle_charge]
       }
       else{
-      data <- read.xlsx(
-        inFile$datapath,
-        sheet = noappelSheet,
-        startRow = 1,
-        cols = c(col_noappel,col_m_total,col_montant_charge,col_libelle_charge)
-      )
-      rows <- nrow(data)
-      noappel_Data <- data[noappel]
-      m_total_Data <- data[m_total]
-      montant_charge_Data <- data[montant_charge]
-      libelle_charge_Data <- data[libelle_charge]
+        data <- read.xlsx(
+          inFile$datapath,
+          sheet = noappelSheet,
+          startRow = 1,
+          cols = c(
+            col_noappel,
+            col_m_total,
+            col_montant_charge,
+            col_libelle_charge
+          )
+        )
+        rows <- nrow(data)
+        noappel_Data <- data[noappel]
+        m_total_Data <- data[m_total]
+        montant_charge_Data <- data[montant_charge]
+        libelle_charge_Data <- data[libelle_charge]
       }
     }
     
-    if (prove == "Adessa Enlaces" && noappelSheet!=centrefacturationSheet) {
+    if (prove == "Adessa Enlaces" &&
+        noappelSheet != centrefacturationSheet) {
       centrefacturation_charge_Data <-
         read.xlsx(
           inFile$datapath,
@@ -728,7 +804,12 @@ shinyServer(function(input, output, session) {
         inFile$datapath,
         sheet = noappelSheet,
         startRow = 1,
-        cols = c(col_noappel,col_m_total,col_montant_charge,col_libelle_charge)
+        cols = c(
+          col_noappel,
+          col_m_total,
+          col_montant_charge,
+          col_libelle_charge
+        )
       )
       rows <- nrow(data)
       noappel_Data <- data[noappel]
@@ -738,15 +819,16 @@ shinyServer(function(input, output, session) {
     }
     
     
-   #if fields are not numeric throw error
+    #if fields are not numeric throw error
     if (sapply(m_total_Data, class) != "numeric" |
         sapply(montant_charge_Data, class) != "numeric") {
       session$sendCustomMessage(type = 'testmessage',
-                                message = "Los campos seleccionados en m_total y/o montant_charge no son valores numericos.")
+                                message = "Los campos seleccionados en m_total y/o montant_charge no tiene solo valores numericos.")
     }
     #round the data from m_total and montant_charge to 4 decimals
     m_total_Data[[1]] <- round(m_total_Data[[1]], 4)
     montant_charge_Data[[1]] <- round(montant_charge_Data[[1]], 4)
+    
     #Custom functions for every provider
     if (prove == "Adessa PC") {
       libelle_charge_Data[] <-
@@ -772,8 +854,8 @@ shinyServer(function(input, output, session) {
       m_total_facture_Data <- colSums(data.matrix(m_total_Data))
       m_total_ttc_facture_Data <- round(m_total_facture_Data * 1.19)
     }
-    
-    if (prove != "Coasin" && prove != "Quintec Soporte" && prove != "Quintec Arriendo") {
+    if (prove != "Coasin" &&
+        prove != "Quintec Soporte" && prove != "Quintec Arriendo") {
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <-
         round(m_total_facture_Data * 1.19, 4)
@@ -828,71 +910,122 @@ shinyServer(function(input, output, session) {
     
     #custom function to insert to the database the data from AdessaEnlaces that requires centrefacturation
     if (prove == "Adessa Enlaces") {
-        # Number of times we'll go through the loop
-        for (i in 1:rows) {
-                df_moisfacturation[i] <- moisfacturation
-                df_datefacturation[i] <- datefacturation
-                df_datefacture1[i] <- datefacture1
-                df_datefacture2[i] <- datefacture2
-                df_codedevise[i] <- codedevise
-                df_idoperateur[i] <- idoperateur
-                df_nomcompte[i] <- nomcompte
-                df_centrefacturation_charge_Data[i] <- centrefacturation_charge_Data[i,]
-                df_nofacture[i] <- nofacture
-                df_noappel_Data[i] <- noappel_Data[i,]
-                df_libelle_charge_Data[i] <- libelle_charge_Data[i,]
-                df_montant_charge_Data[i] <- montant_charge_Data[i,]
-                df_m_total_Data[i] <- m_total_Data[i,]
-                df_m_total_facture_Data[i] <- m_total_facture_Data
-                df_m_total_ttc_facture_Data[i] <- m_total_ttc_facture_Data
-        }
-        insert_sql <- data.frame(df_moisfacturation,df_datefacturation,df_datefacture1,df_datefacture2,df_codedevise,df_idoperateur,
-                                 df_nomcompte,df_centrefacturation_charge_Data,df_nofacture,df_noappel_Data,df_libelle_charge_Data,
-                                 df_montant_charge_Data,df_m_total_Data,df_m_total_facture_Data,df_m_total_ttc_facture_Data)
-    
+      # Number of times we'll go through the loop
+      for (i in 1:rows) {
+        df_moisfacturation[i] <- moisfacturation
+        df_datefacturation[i] <- datefacturation
+        df_datefacture1[i] <- datefacture1
+        df_datefacture2[i] <- datefacture2
+        df_codedevise[i] <- codedevise
+        df_idoperateur[i] <- idoperateur
+        df_nomcompte[i] <- nomcompte
+        df_centrefacturation_charge_Data[i] <-
+          centrefacturation_charge_Data[i, ]
+        df_nofacture[i] <- nofacture
+        df_noappel_Data[i] <- noappel_Data[i, ]
+        df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
+        df_montant_charge_Data[i] <- montant_charge_Data[i, ]
+        df_m_total_Data[i] <- m_total_Data[i, ]
+        df_m_total_facture_Data[i] <- m_total_facture_Data
+        df_m_total_ttc_facture_Data[i] <-
+          m_total_ttc_facture_Data
+      }
+      insert_sql <-
+        data.frame(
+          df_moisfacturation,
+          df_datefacturation,
+          df_datefacture1,
+          df_datefacture2,
+          df_codedevise,
+          df_idoperateur,
+          df_nomcompte,
+          df_centrefacturation_charge_Data,
+          df_nofacture,
+          df_noappel_Data,
+          df_libelle_charge_Data,
+          df_montant_charge_Data,
+          df_m_total_Data,
+          df_m_total_facture_Data,
+          df_m_total_ttc_facture_Data
+        )
+      
     }
     #Main function to add the data to the DB of the rest of the providers
     else
     {
-        # Number of times we'll go through the loop
-        for (i in 1:rows) {
-          df_moisfacturation[i] <- moisfacturation
-          df_datefacturation[i] <- datefacturation
-          df_datefacture1[i] <- datefacture1
-          df_datefacture2[i] <- datefacture2
-          df_codedevise[i] <- codedevise
-          df_idoperateur[i] <- idoperateur
-          df_nomcompte[i] <- nomcompte
-          df_centrefacturation[i] <- centrefacturation
-          df_nofacture[i] <- nofacture
-          df_noappel_Data[i] <- noappel_Data[i,]
-          df_libelle_charge_Data[i] <- libelle_charge_Data[i,]
-          df_montant_charge_Data[i] <- montant_charge_Data[i,]
-          df_m_total_Data[i] <- m_total_Data[i,]
-          df_m_total_facture_Data[i] <- m_total_facture_Data
-          df_m_total_ttc_facture_Data[i] <- m_total_ttc_facture_Data
-          
-        }
-        insert_sql <- data.frame(df_moisfacturation,df_datefacturation,df_datefacture1,df_datefacture2,df_codedevise,df_idoperateur,
-                                  df_nomcompte,df_centrefacturation,df_nofacture,df_noappel_Data,df_libelle_charge_Data,
-                                  df_montant_charge_Data,df_m_total_Data,df_m_total_facture_Data,df_m_total_ttc_facture_Data)
+      # Number of times we'll go through the loop
+      for (i in 1:rows) {
+        df_moisfacturation[i] <- moisfacturation
+        df_datefacturation[i] <- datefacturation
+        df_datefacture1[i] <- datefacture1
+        df_datefacture2[i] <- datefacture2
+        df_codedevise[i] <- codedevise
+        df_idoperateur[i] <- idoperateur
+        df_nomcompte[i] <- nomcompte
+        df_centrefacturation[i] <- centrefacturation
+        df_nofacture[i] <- nofacture
+        df_noappel_Data[i] <- noappel_Data[i, ]
+        df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
+        df_montant_charge_Data[i] <- montant_charge_Data[i, ]
+        df_m_total_Data[i] <- m_total_Data[i, ]
+        df_m_total_facture_Data[i] <- m_total_facture_Data
+        df_m_total_ttc_facture_Data[i] <- m_total_ttc_facture_Data
+        
+      }
+      insert_sql <-
+        data.frame(
+          df_moisfacturation,
+          df_datefacturation,
+          df_datefacture1,
+          df_datefacture2,
+          df_codedevise,
+          df_idoperateur,
+          df_nomcompte,
+          df_centrefacturation,
+          df_nofacture,
+          df_noappel_Data,
+          df_libelle_charge_Data,
+          df_montant_charge_Data,
+          df_m_total_Data,
+          df_m_total_facture_Data,
+          df_m_total_ttc_facture_Data
+        )
     }
-    names(insert_sql) <- c("moisfacturation","datefacturation","datefacture1","datefacture2","codedevise","idoperateur",
-                   "nomcompte","centrefacturation","nofacture","noappel","libelle_charge",
-                   "montant_charge","m_total","m_total_facture","m_total_ttc_facture")
+    names(insert_sql) <-
+      c(
+        "moisfacturation",
+        "datefacturation",
+        "datefacture1",
+        "datefacture2",
+        "codedevise",
+        "idoperateur",
+        "nomcompte",
+        "centrefacturation",
+        "nofacture",
+        "noappel",
+        "libelle_charge",
+        "montant_charge",
+        "m_total",
+        "m_total_facture",
+        "m_total_ttc_facture"
+      )
     
     
     #update to set the decimal separator as comma not dot
-    insert_sql$montant_charge[] <- lapply(insert_sql$montant_charge, function(x)
-      gsub("\\.", ",", x))
+    insert_sql$montant_charge[] <-
+      lapply(insert_sql$montant_charge, function(x)
+        gsub("\\.", ",", x))
     insert_sql$m_total[] <- lapply(insert_sql$m_total, function(x)
       gsub("\\.", ",", x))
-    insert_sql$m_total_facture[] <- lapply(insert_sql$m_total_facture, function(x)
-      gsub("\\.", ",", x))
-    insert_sql$m_total_ttc_facture[] <- lapply(insert_sql$m_total_ttc_facture, function(x)
-      gsub("\\.", ",", x))
+    insert_sql$m_total_facture[] <-
+      lapply(insert_sql$m_total_facture, function(x)
+        gsub("\\.", ",", x))
+    insert_sql$m_total_ttc_facture[] <-
+      lapply(insert_sql$m_total_ttc_facture, function(x)
+        gsub("\\.", ",", x))
     
-    insert_sql <<- data.frame(lapply(insert_sql, as.character), stringsAsFactors=FALSE)
+    insert_sql <<-
+      data.frame(lapply(insert_sql, as.character), stringsAsFactors = FALSE)
     
     #Update the button to show progress on the actions
     style = "success"
@@ -907,7 +1040,7 @@ shinyServer(function(input, output, session) {
   
   #Render the final table
   output$tabla <- renderTable({
-    return(head(insert_sql,10))
+    return(head(insert_sql, 10))
   })
   
   #Download the final csv file
@@ -942,8 +1075,12 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  #In case a new provider was set change the verification button back to default
+  observeEvent(input$Prov, {
+    shinyBS::updateButton(session, "execute", style = "default", icon = "")
+  })
   
-  #Alerts
+  #Alerts after first inputs
   observeEvent(input$execute, {
     style = "default"
     icon = ""
@@ -981,7 +1118,6 @@ shinyServer(function(input, output, session) {
                                 message = "El mes de inicio de periodo es mayor al mes de fin periodo de facturacion.")
     }
     else if (isTRUE(startdate[[1]][3] > endate[[1]][3] &
-                    startdate[[1]][2] > endate[[1]][2] &
                     startdate[[1]][1] == endate[[1]][1])) {
       icon <- icon("ban")
       style = "primary"
@@ -1009,16 +1145,17 @@ shinyServer(function(input, output, session) {
     else {
       style = "success"
       icon = icon("check")
+      updateButton(session,
+                   "tab2",
+                   style = "default",
+                   icon = icon("minus", lib = "glyphicon"))
       renderUI({
         
       })
     }
     updateButton(session, "execute", style = style, icon = icon)
     updateButton(session, "tab1", style = style, icon = icon)
-    updateButton(session,
-                 "tab2",
-                 style = "default",
-                 icon = icon("minus", lib = "glyphicon"))
+    
   })
   
   #Alert in case there is no field selection in the base fields
@@ -1058,7 +1195,8 @@ shinyServer(function(input, output, session) {
   #Alert in case of empty rows
   observeEvent(input$empty_rows, {
     x <- insert_sql
-    empty_rows <- sapply(x, function(x)any(is.na(x)))
+    empty_rows <- sapply(x, function(x)
+      any(is.na(x)))
     if (any(empty_rows)) {
       icon <- icon("ban")
       style = "primary"
@@ -1076,88 +1214,22 @@ shinyServer(function(input, output, session) {
   observeEvent(input$rep_noappel, {
     x <- insert_sql
     prov <- input$Prov
-    if (any(duplicated(x[,10])) && prov != "Adessa Enlaces") {
+    if (any(duplicated(x[, 10])) && prov != "Adessa Enlaces") {
       icon <- icon("ban")
       style = "primary"
-      session$sendCustomMessage(
-        type = 'testmessage',
-        message = "Existen noappels repetidas, Revisar archivo xlsx y corregir."
-      )
+      session$sendCustomMessage(type = 'testmessage',
+                                message = "Existen noappels repetidas, Revisar archivo xlsx y corregir.")
     }
     else{
       style = "success"
       icon = icon("check")
     }
+    
     updateButton(session, "rep_noappel", style = style, icon = icon)
     updateButton(session, "tab3", style = style, icon = icon)
-    })
+  })
   
   #On Hover Tootltips
-  addPopover(
-    session,
-    "factmonth",
-    title = "Mes de Facturacion",
-    content = "Ingrese el Mes de facturacion.",
-    placement = "bottom",
-    trigger = "hover",
-    options = NULL
-  )
-  addPopover(
-    session,
-    "factdate",
-    title = "Fecha de Facturacion",
-    content = "Ingrese la fecha de facturacion.",
-    placement = "bottom",
-    trigger = "hover",
-    options = NULL
-  )
-  addPopover(
-    session,
-    "dateRange",
-    title = "Periodo de Facturacion",
-    content = "Ingrese la fecha de Inicio y fin del periodo de Facturacion.",
-    placement = "bottom",
-    trigger = "hover",
-    options = NULL
-  )
-  addPopover(
-    session,
-    "Client",
-    title = "Cliente",
-    content = "Seleccione el cliente de la factura a ingresar y luego el proveedor correspondiente.",
-    placement = "top",
-    trigger = "hover",
-    options = NULL
-  )
-  addPopover(
-    session,
-    "UF",
-    title = "Valor UF",
-    content = "Ingrese el valor UF que aparece en la factura o el valor UF que corresponda al dia.",
-    placement = "bottom",
-    trigger = "hover",
-    options = NULL
-  )
-  
-  addPopover(
-    session,
-    "fact",
-    title = "Ticket Factura opcional",
-    content = "Haga click aca para ingresar un nombre de Factura personalizado. El nombre de factura por defecto es Cliente-Proveedor-AñoMes.",
-    placement = "right",
-    trigger = "hover",
-    options = NULL
-  )
-  addPopover(
-    session,
-    "facture",
-    title = "Ingresar nombre de Factura",
-    content = "Ingrese el nombre de factura deseado, ese sera el que aparecera en el campo 'nofacture' y sera el nombre del archivo.
-    Solo Utilizar caracteres AlfaNumericos, guiones o parentesis.",
-    placement = "top",
-    trigger = "hover",
-    options = NULL
-  )
   addPopover(
     session,
     "execute",
@@ -1243,4 +1315,4 @@ shinyServer(function(input, output, session) {
   observeEvent(input$refresh, {
     js$refresh()
   })
-  })
+})
