@@ -1,0 +1,14 @@
+## Proyecto Automatizacion de Carga de Facturas Neobis ##
+##
+## Es Necesario Tener R instalado con las siguientes librerias para hacerlo funcionar: ##
+##
+library(shiny)
+library(RMySQL)
+library(openxlsx)
+library(shinyBS)
+library(shinyjs)
+library(stringr)
+library(readxl)
+library(shinythemes)
+## 
+## Ademas es necesaria la base de Datos que no esta incluida en este repositorio ##
