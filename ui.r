@@ -608,6 +608,62 @@ shinyUI(
                                    placement = "top",
                                    trigger = "hover"
                                  )
+                               )),
+              conditionalPanel(condition = "output.campos.includes('m_remise_forfait')",
+                               column(
+                                 3,
+                                 selectizeInput(
+                                   "m_remise_forfait",
+                                   label = h4(
+                                     "M_remise_forfait: ",
+                                     tags$style(type = "text/css", "#q_m_remise_forfait {vertical-align: top;}"),
+                                     bsButton(
+                                       "q_m_remise_forfait",
+                                       label = "",
+                                       icon = icon("question"),
+                                       style = "info",
+                                       size = "extra-small"
+                                     )
+                                   ),
+                                   multiple = TRUE,
+                                   choices = "Sube un Archivo Primero",
+                                   options = list()
+                                 ),
+                                 bsPopover(
+                                   id = "q_m_remise_forfait",
+                                   title = "M_remise_forfait",
+                                   content = "Paquete de descuento",
+                                   placement = "top",
+                                   trigger = "hover"
+                                 )
+                               )),
+              conditionalPanel(condition = "output.campos.includes('m_data_nondefini')",
+                               column(
+                                 3,
+                                 selectizeInput(
+                                   "m_data_nondefini",
+                                   label = h4(
+                                     "m_data_nondefini: ",
+                                     tags$style(type = "text/css", "#q_m_data_nondefini {vertical-align: top;}"),
+                                     bsButton(
+                                       "q_m_data_nondefini",
+                                       label = "",
+                                       icon = icon("question"),
+                                       style = "info",
+                                       size = "extra-small"
+                                     )
+                                   ),
+                                   multiple = TRUE,
+                                   choices = "Sube un Archivo Primero",
+                                   options = list()
+                                 ),
+                                 bsPopover(
+                                   id = "q_m_data_nondefini",
+                                   title = "M_data_nondefini",
+                                   content = "Datos no definidos o Servicio Roaming",
+                                   placement = "top",
+                                   trigger = "hover"
+                                 )
                                ))
             ),
             br(),
@@ -639,8 +695,12 @@ shinyUI(
           conditionalPanel(
             condition = "input.final_exec",
             div(
-              style = "text-align: center",
-              downloadButton('downloadData', 'Descargar CSV'),
+              style = "text-align: center",conditionalPanel(
+                condition = "input.Prov != 'Adessa'",
+              downloadButton('downloadData', 'Descargar CSV')),
+              conditionalPanel(
+                condition = "input.Prov == 'Adessa'",
+                downloadButton('downloadDataAdessa', 'Descargar CSV')),
               bsButton(
                 "empty_rows",
                 " Buscar si existen filas vacias",
