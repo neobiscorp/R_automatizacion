@@ -22,7 +22,6 @@ facturas <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\facturas.csv")
 rows_facturas <- NROW(facturas)
 
 for (i in 1:rows_facturas) {
-  
     sqlQuery(
       paste(
         "INSERT INTO `facturas`(`Número de factura`,`Proveedor`,`date`,`Total sin impuestos`,`Total imp incluidos`)
@@ -60,14 +59,15 @@ for (i in 1:rows_201701) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`,`Centro de facturación`,`Proveedor`,`Total (UF)`,`Plano tarifario (UF)`,
-        `Uso (UF)`,`Servicios (UF)`,`Descuentos (UF)`,`Date` )
+        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
+      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
+      `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
         VALUES (",
         uso_por_acc_201701$ï..Acceso[i],
         ",",
-        uso_por_acc_201701$Centro.de.facturaciÃ³n[i],
-        ",",
         uso_por_acc_201701$Proveedor[i],
+        ",",
+        uso_por_acc_201701$PaÃ.s[i],
         ",",
         uso_por_acc_201701$Total..UF.[i],
         ",",
@@ -79,6 +79,28 @@ for (i in 1:rows_201701) {
         ",",
         uso_por_acc_201701$Descuentos..UF.[i],
         ",",
+        uso_por_acc_201701$Voz..UF.[i],
+        ",",
+        uso_por_acc_201701$Voz.nacional..UF.[i],
+        ",",
+        uso_por_acc_201701$Voz.inter...UF.[i],
+        ",",
+        uso_por_acc_201701$Datos..UF.[i],
+        ",",
+        uso_por_acc_201701$Datos.nac...UF.[i],
+        ",",
+        uso_por_acc_201701$Datos.inter...UF.[i],
+        ",",
+        uso_por_acc_201701$SMS..UF.[i],
+        ",",
+        uso_por_acc_201701$MMS..UF[i],
+        ",",
+        uso_por_acc_201701$N.Â..Copias[i],
+        ",",
+        uso_por_acc_201701$N.Â..Copias.B.N[i],
+        ",",
+        uso_por_acc_201701$N.Â..Copias.Color[i],
+        ",",
         date_201701,
         ")",
         sep = "'"
@@ -89,14 +111,15 @@ for (i in 1:rows_201702) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`,`Centro de facturación`,`Proveedor`,`Total (UF)`,`Plano tarifario (UF)`,
-        `Uso (UF)`,`Servicios (UF)`,`Descuentos (UF)`,`Date` )
+        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
+      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
+       `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
         VALUES (",
         uso_por_acc_201702$ï..Acceso[i],
         ",",
-        uso_por_acc_201702$Centro.de.facturaciÃ³n[i],
-        ",",
         uso_por_acc_201702$Proveedor[i],
+        ",",
+        uso_por_acc_201702$PaÃ.s[i],
         ",",
         uso_por_acc_201702$Total..UF.[i],
         ",",
@@ -108,6 +131,28 @@ for (i in 1:rows_201702) {
         ",",
         uso_por_acc_201702$Descuentos..UF.[i],
         ",",
+        uso_por_acc_201702$Voz..UF.[i],
+        ",",
+        uso_por_acc_201702$Voz.nacional..UF.[i],
+        ",",
+        uso_por_acc_201702$Voz.inter...UF.[i],
+        ",",
+        uso_por_acc_201702$Datos..UF.[i],
+        ",",
+        uso_por_acc_201702$Datos.nac...UF.[i],
+        ",",
+        uso_por_acc_201702$Datos.inter...UF.[i],
+        ",",
+        uso_por_acc_201702$SMS..UF.[i],
+        ",",
+        uso_por_acc_201702$MMS..UF.[i],
+        ",",
+        uso_por_acc_201702$N.Â..Copias[i],
+        ",",
+        uso_por_acc_201702$N.Â..Copias.B.N[i],
+        ",",
+        uso_por_acc_201702$N.Â..Copias.Color[i],
+        ",",
         date_201702,
         ")",
         sep = "'"
@@ -118,14 +163,15 @@ for (i in 1:rows_201703) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`,`Centro de facturación`,`Proveedor`,`Total (UF)`,`Plano tarifario (UF)`,
-        `Uso (UF)`,`Servicios (UF)`,`Descuentos (UF)`,`Date` )
+        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
+      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
+      `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
         VALUES (",
         uso_por_acc_201703$ï..Acceso[i],
         ",",
-        uso_por_acc_201703$Centro.de.facturaciÃ³n[i],
-        ",",
         uso_por_acc_201703$Proveedor[i],
+        ",",
+        uso_por_acc_201703$PaÃ.s[i],
         ",",
         uso_por_acc_201703$Total..UF.[i],
         ",",
@@ -136,6 +182,28 @@ for (i in 1:rows_201703) {
         uso_por_acc_201703$Servicios..UF.[i],
         ",",
         uso_por_acc_201703$Descuentos..UF.[i],
+        ",",
+        uso_por_acc_201703$Voz..UF.[i],
+        ",",
+        uso_por_acc_201703$Voz.nacional..UF.[i],
+        ",",
+        uso_por_acc_201703$Voz.inter...UF.[i],
+        ",",
+        uso_por_acc_201703$Datos..UF.[i],
+        ",",
+        uso_por_acc_201703$Datos.nac...UF.[i],
+        ",",
+        uso_por_acc_201703$Datos.inter...UF.[i],
+        ",",
+        uso_por_acc_201703$SMS..UF.[i],
+        ",",
+        uso_por_acc_201701$MMS..UF.[i],
+        ",",
+        uso_por_acc_201703$N.Â..Copias[i],
+        ",",
+        uso_por_acc_201703$N.Â..Copias.B.N[i],
+        ",",
+        uso_por_acc_201703$N.Â..Copias.Color[i],
         ",",
         date_201703,
         ")",
@@ -221,15 +289,17 @@ for (i in 1:rows_ACCESSES) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_ACCESS`(`ACCESS NUMBER`,`TYPE`,`STATUS`,`MANAGEMENT_ORG_1`,`MANAGEMENT_ORG_2`,
+        "INSERT INTO `export_ACCESS`(`ACCESS NUMBER`,`TYPE`,`STATUS`,`EXPIRATION DATE`,`MANAGEMENT_ORG_1`,`MANAGEMENT_ORG_2`,
         `MANAGEMENT_ORG_3`,`MANAGEMENT_ORG_4`
-        ,`CARRIER_ORG_1`,`CARRIER_ORG_2`,`CARRIER_ORG_3`)
+        ,`CARRIER_ORG_1`,`CARRIER_ORG_2`,`CARRIER_ORG_3`,`ACTIVATION DATE`)
         VALUES (",
         ACCESSES$ACCESS.NUMBER[i],
         ",",
         ACCESSES$TYPE[i],
         ",",
         ACCESSES$STATUS[i],
+        ",",
+        ACCESSES$EXPIRATION.DATE[i],
         ",",
         ACCESSES$`MANAGEMENT_ORG:1`[i],
         ",",
@@ -244,6 +314,8 @@ for (i in 1:rows_ACCESSES) {
         ACCESSES$`CARRIER_ORG:2`[i],
         ",",
         ACCESSES$`CARRIER_ORG:3`[i],
+        ",",
+        ACCESSES$ACTIVATION.DATE[i],
         ")",
         sep = "'"
         )

@@ -28,6 +28,26 @@ sqlQuery <- function (query) {
   return(result)
 }
 
+# #Establish an SQL conection Function for MAC
+# sqlQuery <- function (query) {
+#   # creating DB connection object with RMysql package
+#   DB <- dbConnect(MySQL(),
+#                   user = "root",
+#                   password = "",
+#                   dbname = "neobis",
+#                   host = "localhost"
+#                   port = "8889",
+#                   unix.socket= 'Aplications/MAMP/tmp/mysql/mysql.sock')
+#   # send Query to btain result set
+#   rs <- dbSendQuery(DB, query)
+#   # get elements from result sets and convert to dataframe
+#   result <- fetch(rs,-1)
+#   # close db connection
+#   dbDisconnect(DB)
+#   # return the dataframe
+#   return(result)
+# }
+
 #Function to get the providers of the client
 ProvQuery <- function(cliente) {
   id_cliente <-
@@ -86,7 +106,7 @@ shinyServer(function(input, output, session) {
     factdate <- input$factdate
     factdate_fix <- strsplit(as.character(factdate), "-")
     factdate2 <-
-      paste(factdate_fix[[1]][3], factdate_fix[[1]][2], factdate_fix[[1]][1], sep = "/")
+      paste(factdate_fix[[1]][1], factdate_fix[[1]][2], factdate_fix[[1]][3], sep = "/")
     return(factdate2)
   })
   
@@ -99,9 +119,9 @@ shinyServer(function(input, output, session) {
     period_fix <- strsplit(as.character(period), " ")
     startdate_full <- strsplit(period_fix[[1]][1], "-")
     startdate <-
-      paste(startdate_full[[1]][3],
+      paste(startdate_full[[1]][1],
             startdate_full[[1]][2],
-            startdate_full[[1]][1],
+            startdate_full[[1]][3],
             sep = "/")
     return(startdate)
   })
@@ -115,7 +135,7 @@ shinyServer(function(input, output, session) {
     period_fix2 <- strsplit(as.character(period2), " ")
     endate_full <- strsplit(period_fix2[[2]][1], "-")
     endate <-
-      paste(endate_full[[1]][3], endate_full[[1]][2], endate_full[[1]][1], sep = "/")
+      paste(endate_full[[1]][1], endate_full[[1]][2], endate_full[[1]][3], sep = "/")
     return(endate)
   })
   
@@ -182,8 +202,9 @@ shinyServer(function(input, output, session) {
       facture_name <-
         paste(cliente, prove, moisfact, sep = "-")
       if (prove == "QuintecArriendo" | prove == "QuintecSoporte") {
+        HojaQuintec <- input$HojaQuintec
         facture_name <-
-          paste(cliente, prove, "(HOJA)", moisfact, sep = "-")
+          paste(cliente, prove, HojaQuintec, moisfact, sep = "-")
       }
       return(facture_name)
     }
@@ -1655,7 +1676,10 @@ shinyServer(function(input, output, session) {
       noappel_Data <- Seteadora[noappel]
       m_total_Data <- Seteadora[m_total]
       montant_charge_Data <- Seteadora[montant_charge]
-      libelle_charge_Data <- Seteadora[libelle_charge]
+      
+      libelle_charge_Data[] <- lapply(Seteadora[libelle_charge], function(x) gsub("ñ", "n", x))
+      
+      #libelle_charge_Data <- Seteadora[libelle_charge]
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <- round(m_total_facture_Data * 1.19, 4)
       centrefacturation <- "Seteadora"
@@ -2397,13 +2421,6 @@ shinyServer(function(input, output, session) {
       style = "primary"
       session$sendCustomMessage(type = 'testmessage',
                                 message = "El mes de inicio de periodo es mayor al mes de fin periodo de facturacion.")
-    }
-    else if (isTRUE(startdate[[1]][3] > endate[[1]][3] &
-                    startdate[[1]][1] == endate[[1]][1])) {
-      icon <- icon("ban")
-      style = "primary"
-      session$sendCustomMessage(type = 'testmessage',
-                                message = "El dia de inicio de periodo es mayor al dia de fin periodo de facturacion.")
     }
     else if (is.null(inFile)) {
       icon <- icon("ban")

@@ -22,6 +22,26 @@ sqlQuery <- function (query) {
   return(result)
 }
 
+# #Establish an SQL conection Function for MAC
+# sqlQuery <- function (query) {
+#   # creating DB connection object with RMysql package
+#   DB <- dbConnect(MySQL(),
+#                   user = "root",
+#                   password = "",
+#                   dbname = "neobis",
+#                   host = "localhost"
+#                   port = "8889",
+#                   unix.socket= 'Aplications/MAMP/tmp/mysql/mysql.sock')
+#   # send Query to btain result set
+#   rs <- dbSendQuery(DB, query)
+#   # get elements from result sets and convert to dataframe
+#   result <- fetch(rs,-1)
+#   # close db connection
+#   dbDisconnect(DB)
+#   # return the dataframe
+#   return(result)
+# }
+
 #Query needed to get Clients
 clientes <-
   sqlQuery("SELECT nombre FROM `clientes` ORDER BY id DESC")
@@ -196,6 +216,33 @@ shinyUI(
               id = "qUF",
               title = "Valor UF",
               content = "Ingrese el valor UF que aparece en la factura o el valor UF que corresponda al dia de la factura.",
+              placement = "right",
+              trigger = "hover"
+            )
+          )
+        ),conditionalPanel(
+          condition = "input.Prov == 'Quintec Soporte' | input.Prov == 'Quintec Arriendo'",
+          div(
+            style = "display: inline-block; width: 96%;",
+            selectInput(
+              "HojaQuintec",
+              label = h4(
+                "Seleccione hoja de datos que Subira de Quintec",
+                tags$style(type = "text/css", "#qQuintec {vertical-align: top;}"),
+                bsButton(
+                  "qQuintec",
+                  label = "",
+                  icon = icon("question"),
+                  style = "info",
+                  size = "extra-small"
+                )
+              ),
+              choices = c("Base","Incorporaciones")
+            ),
+            bsPopover(
+              id = "qQuintec",
+              title = "Datos Quintec",
+              content = "Seleccione si los datos a extraer son de la Base o Incorporaciones de Quintec.",
               placement = "right",
               trigger = "hover"
             )
