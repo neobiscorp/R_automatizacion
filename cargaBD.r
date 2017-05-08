@@ -1,5 +1,5 @@
 library(RMySQL)
-
+library(DBI)
 #Establish an SQL conection Function
 sqlQuery <- function (query) {
   # creating DB connection object with RMysql package
@@ -7,6 +7,8 @@ sqlQuery <- function (query) {
                   user = "root",
                   password = "",
                   dbname = "parque_arauco2")
+  #dbSendQuery(DB, 'set character set "utf8"')
+  dbSendQuery(DB, 'SET NAMES utf8')
   # send Query to btain result set
   rs <- dbSendQuery(DB, query)
   # get elements from result sets and convert to dataframe
@@ -24,11 +26,11 @@ rows_facturas <- NROW(facturas)
 for (i in 1:rows_facturas) {
     sqlQuery(
       paste(
-        "INSERT INTO `facturas`(`Número de factura`,`Proveedor`,`date`,`Total sin impuestos`,`Total imp incluidos`)
+        "INSERT INTO `facturas`(`Numero de factura`, `PROVEEDOR`, `FECHA`, `Total sin impuestos`, `Total imp incluidos`)
         VALUES (",
         facturas$ï..NÃºmero.de.factura[i],
         ",",
-        facturas$Proveedor[i],
+        facturas$`Proveedor`[i],
         ",",
         facturas$Mes.de.facturaciÃ³n[i],
         ",",
@@ -40,6 +42,7 @@ for (i in 1:rows_facturas) {
       )
     )
 }
+
 
 uso_por_acc_201701 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201701_uso_por_acc.csv")
 uso_por_acc_201702 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201702_uso_por_acc.csv")
@@ -59,9 +62,7 @@ for (i in 1:rows_201701) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
-      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
-      `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
+        "INSERT INTO `uso_por_acceso`(`ACCESO`, `PROVEEDOR`, `PAIS`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N. Copias`, `N. Copias B/N`, `N. Copias Color`, `FECHA`)
         VALUES (",
         uso_por_acc_201701$ï..Acceso[i],
         ",",
@@ -111,9 +112,7 @@ for (i in 1:rows_201702) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
-      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
-       `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
+        "INSERT INTO `uso_por_acceso`(`ACCESO`, `PROVEEDOR`, `PAIS`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N. Copias`, `N. Copias B/N`, `N. Copias Color`, `FECHA`)
         VALUES (",
         uso_por_acc_201702$ï..Acceso[i],
         ",",
@@ -163,9 +162,7 @@ for (i in 1:rows_201703) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `uso_por_acceso`(`Acceso`, `Proveedor`, `País`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, 
-      `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, 
-      `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N.° Copias`, `N.° Copias B/N`, `N.° Copias Color`, `Date`)
+        "INSERT INTO `uso_por_acceso`(`ACCESO`, `PROVEEDOR`, `PAIS`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N. Copias`, `N. Copias B/N`, `N. Copias Color`, `FECHA`)
         VALUES (",
         uso_por_acc_201703$ï..Acceso[i],
         ",",
@@ -212,6 +209,14 @@ for (i in 1:rows_201703) {
     )
 }
 
+sqlQuery("update `uso_por_acceso` set
+         ACCESO = replace(ACCESO, ' ', '')")
+sqlQuery("update `uso_por_acceso` set
+        `N. Copias` = replace(`N. Copias`, '.', '')")
+sqlQuery("update `uso_por_acceso` set
+         `N. Copias B/N` = replace(`N. Copias B/N`, '.', '')")
+sqlQuery("update `uso_por_acceso` set
+         `N. Copias Color` = replace(`N. Copias Color`, '.', '')")
 
 library(openxlsx)
 
@@ -222,6 +227,8 @@ USERS <- read.xlsx(
   sheet = "USERS",
   startRow = 1
 )
+#Eliminar comilla Simple de nombre de usuario
+USERS <-  as.data.frame(lapply(USERS, function(x) {gsub("'", "", x)}))
 
 ACCESSES <- read.xlsx(
   file,
@@ -250,13 +257,17 @@ rows_DEVICES <-NROW(DEVICES)
 rows_ASSOCIATIONS <-NROW(ASSOCIATIONS)
 rows_PRODUCT_ASSOCIATIONS <-NROW(PRODUCT_ASSOCIATIONS)
 
+
+
+#
+#ELIMINAR COMILLAS DE HOJA USERS
+#
+
 for (i in 1:rows_USERS) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_users`(`UUI`,`TYPE`,`LAST NAME`,`USER ID`,`STATUS`,
-        `MANAGEMENT_ORG_1`,`MANAGEMENT_ORG_2`,`MANAGEMENT_ORG_3`,`MANAGEMENT_ORG_4`
-        ,`SITE_ORG_1_1`,`SITE_ORG_1_2`)
+        "INSERT INTO `export_users`(`UUI`, `TIPO`, `NOMBRE`, `USER ID`, `ESTADO`, `MANAGEMENT_ORG_1`, `MANAGEMENT_ORG_2`, `MANAGEMENT_ORG_3`, `MANAGEMENT_ORG_4`, `SITE_ORG_1_1`, `SITE_ORG_1_2`)
         VALUES (",
         USERS$UUI[i],
         ",",
@@ -289,9 +300,7 @@ for (i in 1:rows_ACCESSES) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_ACCESS`(`ACCESS NUMBER`,`TYPE`,`STATUS`,`EXPIRATION DATE`,`MANAGEMENT_ORG_1`,`MANAGEMENT_ORG_2`,
-        `MANAGEMENT_ORG_3`,`MANAGEMENT_ORG_4`
-        ,`CARRIER_ORG_1`,`CARRIER_ORG_2`,`CARRIER_ORG_3`,`ACTIVATION DATE`)
+        "INSERT INTO `export_access`(`ACCESO`, `TIPO`, `ESTADO`, `FECHA EXPIRACION`, `MANAGEMENT_ORG_1`, `MANAGEMENT_ORG_2`, `MANAGEMENT_ORG_3`, `MANAGEMENT_ORG_4`, `PROVEEDOR`, `CARRIER_ORG_2`, `CARRIER_ORG_3`, `FECHA ACTIVACION`)
         VALUES (",
         ACCESSES$ACCESS.NUMBER[i],
         ",",
@@ -325,9 +334,7 @@ for (i in 1:rows_DEVICES) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_DEVICES`(`TYPE`,`REFNUM`,`IMEI`,`STATUS`,`CUSTOM_FIELD_Marca`,
-        `MANAGEMENT_ORG_1`,`MANAGEMENT_ORG_2`,`MANAGEMENT_ORG_3`,`MANAGEMENT_ORG_4`
-        ,`SITE_ORG_1_1`,`SITE_ORG_1_2`)
+        "INSERT INTO `export_devices`(`TIPO`, `REFNUM`, `IMEI`, `ESTADO`, `CUSTOM_FIELD_Marca`, `MANAGEMENT_ORG_1`, `MANAGEMENT_ORG_2`, `MANAGEMENT_ORG_3`, `MANAGEMENT_ORG_4`, `SITE_ORG_1_1`, `SITE_ORG_1_2`)
         VALUES (",
         DEVICES$TYPE[i],
         ",",
@@ -359,7 +366,7 @@ for (i in 1:rows_ASSOCIATIONS) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_ASSOCIATIONS`(`ACCESS NUMBER`,`UUI`,`IMEI`,`REFNUM`)
+        "INSERT INTO `export_associations`(`ACCESO`, `UUI`, `IMEI`, `REFNUM`)
         VALUES (",
         ASSOCIATIONS$ACCESS.NUMBER[i],
         ",",
@@ -377,7 +384,7 @@ for (i in 1:rows_PRODUCT_ASSOCIATIONS) {
   
     sqlQuery(
       paste(
-        "INSERT INTO `export_PRODUCT_ASSOCIATIONS`(`ACCESS NUMBER`,`PRODUCT NAME`)
+        "INSERT INTO `export_product_associations`(`ACCESO`, `PLAN`)
         VALUES (",
         PRODUCT_ASSOCIATIONS$ACCESS.NUMBER[i],
         ",",
@@ -387,3 +394,17 @@ for (i in 1:rows_PRODUCT_ASSOCIATIONS) {
       )
     )
 }
+
+killDbConnections <- function () {
+  
+  all_cons <- dbListConnections(MySQL())
+  
+  print(all_cons)
+  
+  for(con in all_cons)
+    +  dbDisconnect(con)
+  
+  print(paste(length(all_cons), " connections killed."))
+  
+}
+killDbConnections()

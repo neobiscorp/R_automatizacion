@@ -696,6 +696,19 @@ shinyServer(function(input, output, session) {
       }
       if (prove == "Claro" &&
           noappelSheet == m_autre_nondefiniSheet) {
+        
+        num_rows <-
+          read.xlsx(
+            inFile$datapath,
+            sheet = m_autre_nondefiniSheet,
+            startRow = 1,
+            cols = c(
+              col_noappel
+              
+            )
+          )
+        rows <- nrow(num_rows)
+        data <- character(rows)
         data <-
           read.xlsx(
             inFile$datapath,
@@ -712,14 +725,24 @@ shinyServer(function(input, output, session) {
               
             )
           )
-        rows <- nrow(data)
-        noappel_Data <- data[noappel]
-        m_total_Data <- data[m_total]
-        montant_charge_Data <- data[montant_charge]
-        libelle_charge_Data <- data[libelle_charge]
-        m_remise_forfait_Data <- data[m_remise_forfait]
-        m_autre_nondefini_Data <- data[m_autre_nondefini]
-        m_data_nondefini_Data <- data[m_data_nondefini]
+        num_rows <-
+          read.xlsx(
+            inFile$datapath,
+            sheet = m_autre_nondefiniSheet,
+            startRow = 1,
+            cols = c(
+              col_noappel
+          
+                      )
+          )
+        rows <- nrow(num_rows)
+        noappel_Data <<- data[noappel]
+        m_total_Data <<- data[m_total]
+        montant_charge_Data <<- data[montant_charge]
+        libelle_charge_Data <<- data[libelle_charge]
+        m_remise_forfait_Data <<- data[m_remise_forfait]
+        m_autre_nondefini_Data <<- data[m_autre_nondefini]
+        m_data_nondefini_Data <<- data[m_data_nondefini]
       }
       else{
         data <- read.xlsx(
@@ -834,6 +857,15 @@ shinyServer(function(input, output, session) {
                    gsub(" ", "", paste("Soporte", sep = "")))
       }
     }
+    
+    if (prove == "Claro") {
+      noappel_Data[] <-
+        lapply(noappel_Data,
+               function(x)
+                 gsub("56", "", x))
+    
+    }
+    
     if (prove != "Coasin" &&
         prove != "Quintec Soporte" && prove != "Quintec Arriendo" && prove != "Adessa") {
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
@@ -1059,7 +1091,7 @@ shinyServer(function(input, output, session) {
       libelle_charge_Data <- iPad[libelle_charge]
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <- round(m_total_facture_Data * 1.19, 4)
-      centrefacturation <- "iPad"
+      centrefacturation <- "iPAD"
       nofactu <- facture_name()
       nofacture_Adessa <- strsplit(nofactu, "-")
       nofacture <-
@@ -1676,10 +1708,7 @@ shinyServer(function(input, output, session) {
       noappel_Data <- Seteadora[noappel]
       m_total_Data <- Seteadora[m_total]
       montant_charge_Data <- Seteadora[montant_charge]
-      
-      libelle_charge_Data[] <- lapply(Seteadora[libelle_charge], function(x) gsub("ñ", "n", x))
-      
-      #libelle_charge_Data <- Seteadora[libelle_charge]
+      libelle_charge_Data <- Seteadora[libelle_charge]
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <- round(m_total_facture_Data * 1.19, 4)
       centrefacturation <- "Seteadora"
@@ -2111,19 +2140,17 @@ shinyServer(function(input, output, session) {
         df_codedevise[i] <- codedevise
         df_idoperateur[i] <- idoperateur
         df_nomcompte[i] <- nomcompte
-        df_centrefacturation <-
-          centrefacturation
+        df_centrefacturation <- centrefacturation
         df_nofacture[i] <- nofacture
         df_noappel_Data[i] <- noappel_Data[i, ]
         df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
-        df_montant_charge_Data[i] <- montant_charge_Data[i, ]
-        df_m_total_Data[i] <- m_total_Data[i, ]
-        df_m_total_facture_Data[i] <- m_total_facture_Data
-        df_m_autre_nondefini  <- m_autre_nondefini[i, ]
-        df_m_remise_forfait <- m_autre_nondefini[i, ]
-        df_m_data_nondefini <- m_autre_nondefini[i, ]
-        df_m_total_ttc_facture_Data[i] <-
-          m_total_ttc_facture_Data
+        df_montant_charge_Data[i] <- (montant_charge_Data[i, ])/1000
+        df_m_total_Data[i] <- (m_total_Data[i, ])/1000
+        df_m_total_facture_Data[i] <- (m_total_facture_Data)/1000
+        df_m_autre_nondefini[i]  <- (m_autre_nondefini_Data[i, ])/1000
+        df_m_remise_forfait[i] <- (m_remise_forfait_Data[i, ])/1000
+        df_m_data_nondefini[i] <- (m_data_nondefini_Data[i, ])/1000
+        df_m_total_ttc_facture_Data[i] <- (m_total_ttc_facture_Data)/1000
         
       }
       insert_sql <-
@@ -2135,7 +2162,7 @@ shinyServer(function(input, output, session) {
           df_codedevise,
           df_idoperateur,
           df_nomcompte,
-          df_centrefacturation_charge_Data,
+          df_centrefacturation,
           df_nofacture,
           df_noappel_Data,
           df_libelle_charge_Data,
@@ -2163,9 +2190,9 @@ shinyServer(function(input, output, session) {
           "montant_charge",
           "m_total",
           "m_total_facture",
-          "df_m_autre_nondefini",
-          "df_m_remise_forfait",
-          "df_m_data_nondefini",
+          "m_autre_nondefini",
+          "m_remise_forfait",
+          "m_data_nondefini",
           "m_total_ttc_facture"
         )
       
@@ -2185,20 +2212,24 @@ shinyServer(function(input, output, session) {
       insert_sql$m_autre_nondefini[] <-
         lapply(insert_sql$m_autre_nondefini, function(x)
           gsub("\\.", ",", x))
-      insert_sql$df_m_remise_forfait[] <-
-        lapply(insert_sql$df_m_remise_forfait, function(x)
+      insert_sql$m_remise_forfait[] <-
+        lapply(insert_sql$m_remise_forfait, function(x)
           gsub("\\.", ",", x))
       insert_sql$m_total_ttc_facture[] <-
         lapply(insert_sql$m_total_ttc_facture, function(x)
           gsub("\\.", ",", x))
+      insert_sql$m_data_nondefini[] <-
+        lapply(insert_sql$m_data_nondefini, function(x)
+          gsub("\\.", ",", x))
       
       insert_sql <<-
         data.frame(lapply(insert_sql, as.character), stringsAsFactors = FALSE)
+      print(1)
     }
     
     
     #Main function to add the data to the DB of the rest of the providers
-    if (prove != "Adessa Enlaces" | prove != "Adessa" | prove != "Claro")
+    if (prove != "Adessa Enlaces" & prove != "Adessa" & prove != "Claro")
     {
       df_moisfacturation <- character(rows)
       df_datefacturation <- character(rows)
