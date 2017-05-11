@@ -201,7 +201,7 @@ shinyServer(function(input, output, session) {
       moisfact <- factmonth()
       facture_name <-
         paste(cliente, prove, moisfact, sep = "-")
-      if (prove == "QuintecArriendo" | prove == "QuintecSoporte") {
+      if (prove == "Quintec Arriendo" | prove == "Quintec Soporte") {
         HojaQuintec <- input$HojaQuintec
         facture_name <-
           paste(cliente, prove, HojaQuintec, moisfact, sep = "-")
@@ -466,7 +466,7 @@ shinyServer(function(input, output, session) {
     nofacture <- facture_name()
     valorUF <- as.numeric(input$UF)
     prove <- input$Prov
-    noappel <- input$noappel
+    noapp <- input$noappel
     m_tot <- input$m_total
     montant_char <- input$montant_charge
     libelle_charge <- input$libelle_charge
@@ -476,23 +476,33 @@ shinyServer(function(input, output, session) {
     m_hors_data <- input$m_hors_data
     m_remise_forfait <- input$m_remise_forfait
     m_data_nondefini <- input$m_data_nondefini
+    HojaQuintec <- input$HojaQuintec
+    
     
     inFile <- input$files
     
     #if any input is null, send error
-    if (is.null(noappel) |
+    if (is.null(noapp) |
         is.null(m_tot) |
         is.null(montant_char) | is.null(libelle_charge)) {
       session$sendCustomMessage(type = 'testmessage',
                                 message = "Hay al menos un campo no seleccionado o vacio.")
     }
     
-    #Get the columns and sheets of the selected fields of the file
-    noappel <- strsplit(noappel, " \\$ ")
-    noappelSheet <- noappel[[1]][1]
-    noappel <- noappel[[1]][2]
-    
-    #If 1 or 2 fields were selected in m_total and montant_charge, get them
+    if (NROW(noapp) == 1) {
+      noappel <- strsplit(noapp, " \\$ ")
+      noappelSheet <- noappel[[1]][1]
+      noappel <- noappel[[1]][2]
+    }
+    if (NROW(noapp) == 2) {
+      noappel <- strsplit(noapp[1], " \\$ ")
+      noappelSheet <- noappel[[1]][1]
+      noappel <- noappel[[1]][2]
+      
+      noappel2 <- strsplit(noapp[2], " \\$ ")
+      noappelSheet2 <- noappel2[[1]][1]
+      noappel2 <- noappel2[[1]][2]
+    }
     if (NROW(m_tot) == 1) {
       m_total <- strsplit(m_tot, " \\$ ")
       m_totalSheet <- m_total[[1]][1]
@@ -507,7 +517,6 @@ shinyServer(function(input, output, session) {
       m_totalSheet2 <- m_total2[[1]][1]
       m_total2 <- m_total2[[1]][2]
     }
-    
     if (NROW(montant_char) == 1) {
       montant_charge <- strsplit(montant_char, " \\$ ")
       montant_chargeSheet <- montant_charge[[1]][1]
@@ -522,12 +531,12 @@ shinyServer(function(input, output, session) {
       montant_chargeSheet2 <- montant_charge2[[1]][1]
       montant_charge2 <- montant_charge2[[1]][2]
     }
+    if (NROW(libelle_charge) == 1) {
+      libelle_charge <- strsplit(libelle_charge, " \\$ ")
+      libelle_chargeSheet <- libelle_charge[[1]][1]
+      libelle_charge <- libelle_charge[[1]][2]
+    }
     
-    libelle_charge <- strsplit(libelle_charge, " \\$ ")
-    libelle_chargeSheet <- libelle_charge[[1]][1]
-    libelle_charge <- libelle_charge[[1]][2]
-    
-    #if provider AdessaEnlaces get centrefacturation
     if (prove == "Adessa Enlaces") {
       centrefacturation <- input$centrefacturation
       centrefacturation <- strsplit(centrefacturation, " \\$ ")
@@ -553,199 +562,167 @@ shinyServer(function(input, output, session) {
       
     }
     
-    #get the headers of the selected fields
-    if (noappelSheet == m_totalSheet &&
-        montant_chargeSheet == libelle_chargeSheet &&
-        noappelSheet == montant_chargeSheet
-        && noappelSheet == libelle_chargeSheet) {
-      all_headers <- mysheets[noappelSheet]
-      all_headers <- do.call(rbind.data.frame, all_headers)
-      headers_noappel <- all_headers
-      headers_m_total <- all_headers
-      headers_montant_charge <- all_headers
-      headers_libelle_charge <- all_headers
-      
-      if (prove == "Adessa Enlaces") {
-        headers_centrefacturation <- all_headers
-        col_centrefacturation <-  match(centrefacturation, names(headers_centrefacturation))
-      }
-      if (prove == "Claro") {
-        headers_m_autre_nondefini <- all_headers
-        headers_m_remise_forfait <- all_headers
-        headers_m_data_nondefini <- all_headers
-        col_m_autre_nondefini <-  match(m_autre_nondefini, names(headers_m_autre_nondefini))
-        col_m_remise_forfait <-  match(m_remise_forfait, names(headers_m_remise_forfait))
-        col_m_data_nondefini <-  match(m_data_nondefini, names(headers_m_data_nondefini))
-      }
-      
+    all_headers <- mysheets[noappelSheet]
+    all_headers <- do.call(rbind.data.frame, all_headers)
+    headers_noappel <- all_headers
+    headers_m_total <- all_headers
+    headers_montant_charge <- all_headers
+    headers_libelle_charge <- all_headers
+    
+    if (prove == "Adessa Enlaces") {
+      headers_centrefacturation <- all_headers
+      col_centrefacturation <-  match(centrefacturation, names(headers_centrefacturation))
     }
-    else{
-      headers_noappel <-
-        read.xlsx(inFile$datapath, sheet = noappelSheet, rows = 1)
-      headers_m_total <-
-        read.xlsx(inFile$datapath, sheet = m_totalSheet, rows = 1)
-      headers_montant_charge <-
-        read.xlsx(inFile$datapath, sheet = montant_chargeSheet, rows = 1)
-      headers_libelle_charge <-
-        read.xlsx(inFile$datapath, sheet = libelle_chargeSheet, rows = 1)
-      
-      if (prove == "Adessa Enlaces") {
-        headers_centrefacturation <-
-          read.xlsx(inFile$datapath, sheet = centrefacturationSheet, rows = 1)
-        col_centrefacturation <-
-          match(centrefacturation, names(headers_centrefacturation))
-      }
-      
-      if (prove == "Claro") {
-        headers_m_autre_nondefini <- read.xlsx(inFile$datapath, sheet = m_autre_nondefiniSheet, rows = 1)
-        headers_m_remise_forfait <- read.xlsx(inFile$datapath, sheet = m_remise_forfaitSheet, rows = 1)
-        headers_m_data_nondefini <- read.xlsx(inFile$datapath, sheet = m_data_nondefiniSheet, rows = 1)
-        col_m_autre_nondefini <-  match(m_autre_nondefini, names(headers_m_autre_nondefini))
-        col_m_remise_forfait <-  match(m_remise_forfait, names(headers_m_remise_forfait))
-        col_m_data_nondefini <-  match(m_data_nondefini, names(headers_m_data_nondefini))
-      }
-      
-      if (NROW(montant_char) == 2 && NROW(m_tot) == 2) {
-        headers_m_total2 <-
-          read.xlsx(inFile$datapath, sheet = m_totalSheet2, rows = 1)
-        headers_montant_charge2 <-
-          read.xlsx(inFile$datapath, sheet = montant_chargeSheet2, rows = 1)
-        
-        col_m_total2 <- match(m_total2, names(headers_m_total2))
-        col_montant_charge2 <-
-          match(montant_charge2, names(headers_montant_charge2))
-        
-        col_m_total[[2]] <- col_m_total2
-        col_montant_charge[[2]] <- col_montant_charge2
-      }
+    if (prove == "Claro") {
+      headers_m_autre_nondefini <- all_headers
+      headers_m_remise_forfait <- all_headers
+      headers_m_data_nondefini <- all_headers
+      col_m_autre_nondefini <-  match(m_autre_nondefini, names(headers_m_autre_nondefini))
+      col_m_remise_forfait <-  match(m_remise_forfait, names(headers_m_remise_forfait))
+      col_m_data_nondefini <-  match(m_data_nondefini, names(headers_m_data_nondefini))
     }
-    #get the column number of the selected field
+    
     col_noappel <- match(noappel, names(headers_noappel))
     col_m_total <- match(m_total, names(headers_m_total))
-    col_montant_charge <-
-      match(montant_charge, names(headers_montant_charge))
-    col_libelle_charge <-
-      match(libelle_charge, names(headers_libelle_charge))
-    if (NROW(montant_char) == 2 &&
-        NROW(m_tot) == 2 &&
-        m_totalSheet2 == noappelSheet &&
-        montant_chargeSheet2 == noappelSheet) {
+    col_montant_charge <- match(montant_charge, names(headers_montant_charge))
+    col_libelle_charge <- match(libelle_charge, names(headers_libelle_charge))
+    
+    if (NROW(montant_char) == 2 &
+        NROW(m_tot) == 2) {
       headers_m_total2 <- all_headers
       headers_montant_charge2 <- all_headers
       col_m_total2 <- match(m_total2, names(headers_m_total2))
-      col_montant_charge2 <-
-        match(montant_charge2, names(headers_montant_charge2))
+      col_montant_charge2 <- match(montant_charge2, names(headers_montant_charge2))
       col_m_total[[2]] <- col_m_total2
       col_montant_charge[[2]] <- col_montant_charge2
     }
-    #get the data from the file
-    if (noappelSheet == m_totalSheet &&
-        montant_chargeSheet == libelle_chargeSheet &&
-        noappelSheet == montant_chargeSheet
-        && noappelSheet == libelle_chargeSheet) {
-      if (prove == "Adessa Enlaces" &&
-          noappelSheet == centrefacturationSheet) {
-        data <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = centrefacturationSheet,
-            startRow = 1,
-            cols = c(
-              col_noappel,
-              col_m_total,
-              col_montant_charge,
-              col_libelle_charge,
-              col_centrefacturation
-            )
+    if (NROW(noapp) == 2 ) {
+      headers_noappel2 <- all_headers
+      col_noappel2 <- match(noappel2, names(headers_noappel2))
+      col_noappel[[2]] <- col_noappel2
+    }
+    
+    if (prove == "Adessa Enlaces") {
+      data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = centrefacturationSheet,
+          startRow = 1,
+          cols = c(
+            col_noappel,
+            col_m_total,
+            col_montant_charge,
+            col_libelle_charge,
+            col_centrefacturation
           )
-        rows <- nrow(data)
-        noappel_Data <- data[noappel]
-        m_total_Data <- data[m_total]
-        montant_charge_Data <- data[montant_charge]
-        libelle_charge_Data <- data[libelle_charge]
-        centrefacturation_charge_Data <- data[centrefacturation]
-      }
-      if (NROW(montant_char) == 2 &&
-          NROW(m_tot) == 2 &&
-          m_totalSheet2 == noappelSheet &&
-          montant_chargeSheet2 == noappelSheet) {
-        data <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = noappelSheet,
-            startRow = 1,
-            cols = c(col_noappel, col_libelle_charge)
+        )
+      rows <- nrow(data)
+      noappel_Data <- data[noappel]
+      m_total_Data <- data[m_total]
+      montant_charge_Data <- data[montant_charge]
+      libelle_charge_Data <- data[libelle_charge]
+      centrefacturation_charge_Data <- data[centrefacturation]
+    }
+    else if (NROW(montant_char) == 2 &&
+             NROW(m_tot) == 2) {
+      data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = noappelSheet,
+          startRow = 1,
+          cols = c(col_noappel, col_libelle_charge)
+        )
+      m_total_Data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = m_totalSheet,
+          startRow = 1,
+          cols = c(col_m_total)
+        )
+      montant_charge_Data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = montant_chargeSheet,
+          startRow = 1,
+          cols = c(col_montant_charge)
+        )
+      rows <- nrow(data)
+      noappel_Data <- data[noappel]
+      libelle_charge_Data <- data[libelle_charge]
+    }
+    else if (NROW(noapp) == 2) {
+      data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = noappelSheet,
+          startRow = 1,
+          cols = c(col_libelle_charge, col_m_total, col_montant_charge)
+        )
+      noappel_Data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = noappelSheet,
+          startRow = 1,
+          cols = c(col_noappel)
+        )
+      rows <- nrow(data)
+      libelle_charge_Data <- data[libelle_charge]
+      m_total_Data <- data[m_total]
+      montant_charge_Data <- data[montant_charge]
+    }
+    else if (prove == "Claro" &&
+             noappelSheet == m_autre_nondefiniSheet) {
+      
+      num_rows <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = m_autre_nondefiniSheet,
+          startRow = 1,
+          cols = c(col_noappel)
+        )
+      rows <- nrow(num_rows)
+      data <-
+        read.xlsx(
+          inFile$datapath,
+          sheet = m_autre_nondefiniSheet,
+          startRow = 1,
+          colNames = TRUE,
+          rows = 1:(rows+1),
+          cols = c(
+            col_noappel,
+            col_m_total,
+            col_montant_charge,
+            col_libelle_charge,
+            col_m_remise_forfait,
+            col_m_autre_nondefini,
+            col_m_data_nondefini
           )
-        m_total_Data <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = m_totalSheet,
-            startRow = 1,
-            cols = c(col_m_total)
-          )
-        montant_charge_Data <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = montant_chargeSheet,
-            startRow = 1,
-            cols = c(col_montant_charge)
-          )
-        rows <- nrow(data)
-        noappel_Data <- data[noappel]
-        libelle_charge_Data <- data[libelle_charge]
-      }
-      if (prove == "Claro" &&
-          noappelSheet == m_autre_nondefiniSheet) {
-        
-        num_rows <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = m_autre_nondefiniSheet,
-            startRow = 1,
-            cols = c(
-              col_noappel
-              
-            )
-          )
-        rows <- nrow(num_rows)
-        data <- character(rows)
-        data <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = m_autre_nondefiniSheet,
-            startRow = 1,
-            cols = c(
-              col_noappel,
-              col_m_total,
-              col_montant_charge,
-              col_libelle_charge,
-              col_m_remise_forfait,
-              col_m_autre_nondefini,
-              col_m_data_nondefini
-              
-            )
-          )
-        num_rows <-
-          read.xlsx(
-            inFile$datapath,
-            sheet = m_autre_nondefiniSheet,
-            startRow = 1,
-            cols = c(
-              col_noappel
-          
-                      )
-          )
-        rows <- nrow(num_rows)
-        noappel_Data <<- data[noappel]
-        m_total_Data <<- data[m_total]
-        montant_charge_Data <<- data[montant_charge]
-        libelle_charge_Data <<- data[libelle_charge]
-        m_remise_forfait_Data <<- data[m_remise_forfait]
-        m_autre_nondefini_Data <<- data[m_autre_nondefini]
-        m_data_nondefini_Data <<- data[m_data_nondefini]
-      }
-      else{
-        data <- read.xlsx(
+        )
+      
+      noappel_Data <- data[noappel]
+      m_total_Data <- data[m_total]
+      montant_charge_Data <- data[montant_charge]
+      libelle_charge_Data <- data[libelle_charge]
+      m_remise_forfait_Data <- data[m_remise_forfait]
+      m_autre_nondefini_Data <- data[m_autre_nondefini]
+      m_data_nondefini_Data <- data[m_data_nondefini]
+      
+      rows_to_keep <- m_remise_forfait_Data != 0
+      
+      noappel_Data <- data.frame(noappel_Data[rows_to_keep,])
+      m_total_Data <- data.frame(m_total_Data[rows_to_keep,])
+      montant_charge_Data <- data.frame(montant_charge_Data[rows_to_keep,])
+      libelle_charge_Data <- data.frame(libelle_charge_Data[rows_to_keep,])
+      m_remise_forfait_Data <- data.frame(m_remise_forfait_Data[rows_to_keep,])
+      m_autre_nondefini_Data <- data.frame(m_autre_nondefini_Data[rows_to_keep,])
+      m_data_nondefini_Data <- data.frame(m_data_nondefini_Data[rows_to_keep,])
+      
+      m_remise_forfait_Data[m_remise_forfait_Data > 0] <- 0
+      rows <- nrow(m_data_nondefini_Data)
+    }
+    else {
+      data <-
+        read.xlsx(
           inFile$datapath,
           sheet = noappelSheet,
           startRow = 1,
@@ -756,41 +733,12 @@ shinyServer(function(input, output, session) {
             col_libelle_charge
           )
         )
-        rows <- nrow(data)
-        noappel_Data <- data[noappel]
-        m_total_Data <- data[m_total]
-        montant_charge_Data <- data[montant_charge]
-        libelle_charge_Data <- data[libelle_charge]
-      }
-    }
-    
-    if (prove == "Adessa Enlaces" &&
-        noappelSheet != centrefacturationSheet) {
-      centrefacturation_charge_Data <-
-        read.xlsx(
-          inFile$datapath,
-          sheet = centrefacturationSheet,
-          startRow = 1,
-          cols = c(col_centrefacturation)
-        )
-      data <- read.xlsx(
-        inFile$datapath,
-        sheet = noappelSheet,
-        startRow = 1,
-        cols = c(
-          col_noappel,
-          col_m_total,
-          col_montant_charge,
-          col_libelle_charge
-        )
-      )
       rows <- nrow(data)
       noappel_Data <- data[noappel]
       m_total_Data <- data[m_total]
       montant_charge_Data <- data[montant_charge]
       libelle_charge_Data <- data[libelle_charge]
     }
-    
     
     #if fields are not numeric throw error
     if (sapply(m_total_Data, class) != "numeric" |
@@ -836,8 +784,7 @@ shinyServer(function(input, output, session) {
     
     if (prove == "Quintec Soporte" | prove == "Quintec Arriendo") {
       m_total_Data <- m_total_Data[1] + m_total_Data[2]
-      montant_charge_Data <-
-        montant_charge_Data[1] + montant_charge_Data[2]
+      montant_charge_Data <- montant_charge_Data[1] + montant_charge_Data[2]
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <-
         round(m_total_facture_Data * 1.19, 4)
@@ -846,8 +793,8 @@ shinyServer(function(input, output, session) {
         paste(
           nofacture_Quintec[[1]][1],
           nofacture_Quintec[[1]][2],
-          m_totalSheet,
-          nofacture_Quintec[[1]][4],
+          HojaQuintec,
+          nofacture_Quintec[[1]][3],
           sep = "-"
         )
       if (prove == "Quintec Soporte") {
@@ -862,20 +809,352 @@ shinyServer(function(input, output, session) {
       noappel_Data[] <-
         lapply(noappel_Data,
                function(x)
-                 gsub("56", "", x))
-    
+                 substring(x, 3))
     }
     
     if (prove != "Coasin" &&
-        prove != "Quintec Soporte" && prove != "Quintec Arriendo" && prove != "Adessa") {
+        prove != "Quintec Soporte" && prove != "Quintec Arriendo" && prove != "Adessa" && prove != "Plan Walmart") {
       m_total_facture_Data <- round(colSums(m_total_Data), 4)
       m_total_ttc_facture_Data <- round(m_total_facture_Data * 1.19, 4)
     }
     
-    
-    
-    if (prove == "Adessa"){
+    if (prove == "Plan Walmart"){
+     
+       ##Reloj Control##
+      RelojControl <- filter(data, Servicio == "RelojControl")
+      rows <- nrow(RelojControl)
+      noappel_Dat <- filter(noappel_Data, Servicio == "RelojControl")
+      noappel_Dat <- data.frame(do.call(paste0, noappel_Dat[c(2,1)]))
       
+      
+      m_total_Data <- abs(RelojControl[m_total])
+      montant_charge_Data <- abs(RelojControl[montant_charge])
+      libelle_charge_Data <- RelojControl[libelle_charge]
+      
+      libelle_charge_Data[] <-
+        lapply(libelle_charge_Data, function(x)
+          paste("Serv ", x, sep = ""))
+      
+      m_total_facture_Data <- abs(round(colSums(m_total_Data), 4))
+      m_total_ttc_facture_Data <- abs(round(m_total_facture_Data * 1.19, 4))
+      centrefacturation <- "420901002RelojControl"
+      nofactu <- facture_name()
+      nofacture_Plan <- strsplit(nofactu, "-")
+      nofacture <-
+        paste(
+          nofacture_Plan[[1]][1],
+          nofacture_Plan[[1]][2],
+          "RelojControl",
+          nofacture_Plan[[1]][3],
+          sep = "-"
+        )
+      df_moisfacturation <- character(rows)
+      df_datefacturation <- character(rows)
+      df_datefacture1 <- character(rows)
+      df_datefacture2 <- character(rows)
+      df_codedevise <- character(rows)
+      df_idoperateur <- character(rows)
+      df_nomcompte <- character(rows)
+      df_centrefacturation <- character(rows)
+      df_nofacture <- character(rows)
+      df_noappel_Data <- character(rows)
+      df_libelle_charge_Data <- character(rows)
+      df_montant_charge_Data <- numeric(rows)
+      df_m_total_Data <- numeric(rows)
+      df_m_total_facture_Data <- numeric(rows)
+      df_m_total_ttc_facture_Data <- numeric(rows)
+      for (i in 1:rows) {
+        df_moisfacturation[i] <- moisfacturation
+        df_datefacturation[i] <- datefacturation
+        df_datefacture1[i] <- datefacture1
+        df_datefacture2[i] <- datefacture2
+        df_codedevise[i] <- codedevise
+        df_idoperateur[i] <- idoperateur
+        df_nomcompte[i] <- nomcompte
+        df_centrefacturation[i] <- centrefacturation
+        df_nofacture[i] <- nofacture
+        df_noappel_Data[i] <- noappel_Dat[i, ]
+        df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
+        df_montant_charge_Data[i] <- (montant_charge_Data[i, ])/1000
+        df_m_total_Data[i] <- (m_total_Data[i, ])/1000
+        df_m_total_facture_Data[i] <- (m_total_facture_Data)/1000
+        df_m_total_ttc_facture_Data[i] <- (m_total_ttc_facture_Data)/1000
+      }
+      RelojControl <-
+        data.frame(
+          df_moisfacturation,
+          df_datefacturation,
+          df_datefacture1,
+          df_datefacture2,
+          df_codedevise,
+          df_idoperateur,
+          df_nomcompte,
+          df_centrefacturation,
+          df_nofacture,
+          noappel_Dat,
+          df_libelle_charge_Data,
+          df_montant_charge_Data,
+          df_m_total_Data,
+          df_m_total_facture_Data,
+          df_m_total_ttc_facture_Data
+        )
+      names(RelojControl) <-
+        c(
+          "moisfacturation",
+          "datefacturation",
+          "datefacture1",
+          "datefacture2",
+          "codedevise",
+          "idoperateur",
+          "nomcompte",
+          "centrefacturation",
+          "nofacture",
+          "noappel",
+          "libelle_charge",
+          "montant_charge",
+          "m_total",
+          "m_total_facture",
+          "m_total_ttc_facture"
+        )
+      RelojControl$montant_charge[] <-
+        lapply(RelojControl$montant_charge, function(x)
+          gsub("\\.", ",", x))
+      RelojControl$m_total[] <- lapply(RelojControl$m_total, function(x)
+        gsub("\\.", ",", x))
+      RelojControl$m_total_facture[] <-
+        lapply(RelojControl$m_total_facture, function(x)
+          gsub("\\.", ",", x))
+      RelojControl$m_total_ttc_facture[] <-
+        lapply(RelojControl$m_total_ttc_facture, function(x)
+          gsub("\\.", ",", x))
+      RelojControl <<-
+        data.frame(lapply(RelojControl, as.character), stringsAsFactors = FALSE) 
+      
+      ##ServicioImpresion##
+      Impresion <- filter(data, Servicio == "ServicioImpresion")
+      rows <- nrow(Impresion)
+      noappel_Dat <- filter(noappel_Data, Servicio == "ServicioImpresion")
+      noappel_Dat <- data.frame(do.call(paste0, noappel_Dat[c(2,1)]))
+      noappel_Dat <- data.frame(lapply(noappel_Dat, function(x) gsub("Servicio", "", x)))
+      
+      m_total_Data <- abs(Impresion[m_total])
+      montant_charge_Data <- abs(Impresion[montant_charge])
+      libelle_charge_Data <- Impresion[libelle_charge]
+      
+      libelle_charge_Data[] <-
+        lapply(libelle_charge_Data, function(x)
+          paste("Serv Impresion", sep = ""))
+      
+      m_total_facture_Data <- abs(round(colSums(m_total_Data), 4))
+      m_total_ttc_facture_Data <- abs(round(m_total_facture_Data * 1.19, 4))
+      centrefacturation <- "420401009Impresion"
+      nofactu <- facture_name()
+      nofacture_Plan <- strsplit(nofactu, "-")
+      nofacture <-
+        paste(
+          nofacture_Plan[[1]][1],
+          nofacture_Plan[[1]][2],
+          "Impresion",
+          nofacture_Plan[[1]][3],
+          sep = "-"
+        )
+      df_moisfacturation <- character(rows)
+      df_datefacturation <- character(rows)
+      df_datefacture1 <- character(rows)
+      df_datefacture2 <- character(rows)
+      df_codedevise <- character(rows)
+      df_idoperateur <- character(rows)
+      df_nomcompte <- character(rows)
+      df_centrefacturation <- character(rows)
+      df_nofacture <- character(rows)
+      df_noappel_Data <- character(rows)
+      df_libelle_charge_Data <- character(rows)
+      df_montant_charge_Data <- numeric(rows)
+      df_m_total_Data <- numeric(rows)
+      df_m_total_facture_Data <- numeric(rows)
+      df_m_total_ttc_facture_Data <- numeric(rows)
+      for (i in 1:rows) {
+        df_moisfacturation[i] <- moisfacturation
+        df_datefacturation[i] <- datefacturation
+        df_datefacture1[i] <- datefacture1
+        df_datefacture2[i] <- datefacture2
+        df_codedevise[i] <- codedevise
+        df_idoperateur[i] <- idoperateur
+        df_nomcompte[i] <- nomcompte
+        df_centrefacturation[i] <- centrefacturation
+        df_nofacture[i] <- nofacture
+        df_noappel_Data[i] <- noappel_Dat[i, ]
+        df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
+        df_montant_charge_Data[i] <- (montant_charge_Data[i, ])/1000
+        df_m_total_Data[i] <- (m_total_Data[i, ])/1000
+        df_m_total_facture_Data[i] <- (m_total_facture_Data)/1000
+        df_m_total_ttc_facture_Data[i] <- (m_total_ttc_facture_Data)/1000
+      }
+      Impresion <-
+        data.frame(
+          df_moisfacturation,
+          df_datefacturation,
+          df_datefacture1,
+          df_datefacture2,
+          df_codedevise,
+          df_idoperateur,
+          df_nomcompte,
+          df_centrefacturation,
+          df_nofacture,
+          noappel_Dat,
+          df_libelle_charge_Data,
+          df_montant_charge_Data,
+          df_m_total_Data,
+          df_m_total_facture_Data,
+          df_m_total_ttc_facture_Data
+        )
+      names(Impresion) <-
+        c(
+          "moisfacturation",
+          "datefacturation",
+          "datefacture1",
+          "datefacture2",
+          "codedevise",
+          "idoperateur",
+          "nomcompte",
+          "centrefacturation",
+          "nofacture",
+          "noappel",
+          "libelle_charge",
+          "montant_charge",
+          "m_total",
+          "m_total_facture",
+          "m_total_ttc_facture"
+        )
+      Impresion$montant_charge[] <-
+        lapply(Impresion$montant_charge, function(x)
+          gsub("\\.", ",", x))
+      Impresion$m_total[] <- lapply(Impresion$m_total, function(x)
+        gsub("\\.", ",", x))
+      Impresion$m_total_facture[] <-
+        lapply(Impresion$m_total_facture, function(x)
+          gsub("\\.", ",", x))
+      Impresion$m_total_ttc_facture[] <-
+        lapply(Impresion$m_total_ttc_facture, function(x)
+          gsub("\\.", ",", x))
+      Impresion <<-
+        data.frame(lapply(Impresion, as.character), stringsAsFactors = FALSE) 
+      
+      ##SoporteArriendo##
+      SoporteArriendo <- filter(data, Servicio == "SoporteArriendo")
+      rows <- nrow(SoporteArriendo)
+      noappel_Dat <- filter(noappel_Data, Servicio == "SoporteArriendo")
+      noappel_Dat <- data.frame(do.call(paste0, noappel_Dat[c(2,1)]))
+      noappel_Dat <- data.frame(lapply(noappel_Dat, function(x) gsub("Soporte", "Sop", x)))
+      
+      m_total_Data <- abs(SoporteArriendo[m_total])
+      montant_charge_Data <- abs(SoporteArriendo[montant_charge])
+      libelle_charge_Data <- SoporteArriendo[libelle_charge]
+      
+      libelle_charge_Data[] <-
+        lapply(libelle_charge_Data, function(x)
+          paste("Serv ", x, sep = ""))
+      
+      m_total_facture_Data <- abs(round(colSums(m_total_Data), 4))
+      m_total_ttc_facture_Data <- abs(round(m_total_facture_Data * 1.19, 4))
+      centrefacturation <- "420901002SoporteArriendo"
+      nofactu <- facture_name()
+      nofacture_Plan <- strsplit(nofactu, "-")
+      nofacture <-
+        paste(
+          nofacture_Plan[[1]][1],
+          nofacture_Plan[[1]][2],
+          "SoporteArriendo",
+          nofacture_Plan[[1]][3],
+          sep = "-"
+        )
+      df_moisfacturation <- character(rows)
+      df_datefacturation <- character(rows)
+      df_datefacture1 <- character(rows)
+      df_datefacture2 <- character(rows)
+      df_codedevise <- character(rows)
+      df_idoperateur <- character(rows)
+      df_nomcompte <- character(rows)
+      df_centrefacturation <- character(rows)
+      df_nofacture <- character(rows)
+      df_noappel_Data <- character(rows)
+      df_libelle_charge_Data <- character(rows)
+      df_montant_charge_Data <- numeric(rows)
+      df_m_total_Data <- numeric(rows)
+      df_m_total_facture_Data <- numeric(rows)
+      df_m_total_ttc_facture_Data <- numeric(rows)
+      for (i in 1:rows) {
+        df_moisfacturation[i] <- moisfacturation
+        df_datefacturation[i] <- datefacturation
+        df_datefacture1[i] <- datefacture1
+        df_datefacture2[i] <- datefacture2
+        df_codedevise[i] <- codedevise
+        df_idoperateur[i] <- idoperateur
+        df_nomcompte[i] <- nomcompte
+        df_centrefacturation[i] <- centrefacturation
+        df_nofacture[i] <- nofacture
+        df_noappel_Data[i] <- noappel_Dat[i, ]
+        df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
+        df_montant_charge_Data[i] <- (montant_charge_Data[i, ])/1000
+        df_m_total_Data[i] <- (m_total_Data[i, ])/1000
+        df_m_total_facture_Data[i] <- (m_total_facture_Data)/1000
+        df_m_total_ttc_facture_Data[i] <- (m_total_ttc_facture_Data)/1000
+      }
+      SoporteArriendo <-
+        data.frame(
+          df_moisfacturation,
+          df_datefacturation,
+          df_datefacture1,
+          df_datefacture2,
+          df_codedevise,
+          df_idoperateur,
+          df_nomcompte,
+          df_centrefacturation,
+          df_nofacture,
+          noappel_Dat,
+          df_libelle_charge_Data,
+          df_montant_charge_Data,
+          df_m_total_Data,
+          df_m_total_facture_Data,
+          df_m_total_ttc_facture_Data
+        )
+      names(SoporteArriendo) <-
+        c(
+          "moisfacturation",
+          "datefacturation",
+          "datefacture1",
+          "datefacture2",
+          "codedevise",
+          "idoperateur",
+          "nomcompte",
+          "centrefacturation",
+          "nofacture",
+          "noappel",
+          "libelle_charge",
+          "montant_charge",
+          "m_total",
+          "m_total_facture",
+          "m_total_ttc_facture"
+        )
+      SoporteArriendo$montant_charge[] <-
+        lapply(SoporteArriendo$montant_charge, function(x)
+          gsub("\\.", ",", x))
+      SoporteArriendo$m_total[] <- lapply(SoporteArriendo$m_total, function(x)
+        gsub("\\.", ",", x))
+      SoporteArriendo$m_total_facture[] <-
+        lapply(SoporteArriendo$m_total_facture, function(x)
+          gsub("\\.", ",", x))
+      SoporteArriendo$m_total_ttc_facture[] <-
+        lapply(SoporteArriendo$m_total_ttc_facture, function(x)
+          gsub("\\.", ",", x))
+      SoporteArriendo <<-
+        data.frame(lapply(SoporteArriendo, as.character), stringsAsFactors = FALSE) 
+      
+      }
+    
+    else if (prove == "Adessa"){
+      
+      ##Sabcito##
       Sabcito <- filter(data, Servicio == "Sabcito-Pistola de Calzado")
       rows <- nrow(Sabcito)
       noappel_Data <- Sabcito[noappel]
@@ -2016,7 +2295,7 @@ shinyServer(function(input, output, session) {
     
     
     #custom function to insert to the database the data from AdessaEnlaces that requires centrefacturation
-    if (prove == "Adessa Enlaces") {
+   else if (prove == "Adessa Enlaces") {
       df_moisfacturation <- character(rows)
       df_datefacturation <- character(rows)
       df_datefacture1 <- character(rows)
@@ -2109,7 +2388,7 @@ shinyServer(function(input, output, session) {
       
     }
     
-    if (prove == "Claro"){
+    else if (prove == "Claro"){
       
       df_moisfacturation <- character(rows)
       df_datefacturation <- character(rows)
@@ -2140,7 +2419,7 @@ shinyServer(function(input, output, session) {
         df_codedevise[i] <- codedevise
         df_idoperateur[i] <- idoperateur
         df_nomcompte[i] <- nomcompte
-        df_centrefacturation <- centrefacturation
+        df_centrefacturation[i] <- centrefacturation
         df_nofacture[i] <- nofacture
         df_noappel_Data[i] <- noappel_Data[i, ]
         df_libelle_charge_Data[i] <- libelle_charge_Data[i, ]
@@ -2153,6 +2432,7 @@ shinyServer(function(input, output, session) {
         df_m_total_ttc_facture_Data[i] <- (m_total_ttc_facture_Data)/1000
         
       }
+      
       insert_sql <-
         data.frame(
           df_moisfacturation,
@@ -2165,7 +2445,7 @@ shinyServer(function(input, output, session) {
           df_centrefacturation,
           df_nofacture,
           df_noappel_Data,
-          df_libelle_charge_Data,
+          libelle_charge_Data,
           df_montant_charge_Data,
           df_m_total_Data,
           df_m_total_facture_Data,
@@ -2224,12 +2504,12 @@ shinyServer(function(input, output, session) {
       
       insert_sql <<-
         data.frame(lapply(insert_sql, as.character), stringsAsFactors = FALSE)
-      print(1)
+      
     }
     
     
     #Main function to add the data to the DB of the rest of the providers
-    if (prove != "Adessa Enlaces" & prove != "Adessa" & prove != "Claro")
+    else if (prove != "Adessa Enlaces" & prove != "Adessa" & prove != "Claro" & prove != "Plan Walmart")
     {
       df_moisfacturation <- character(rows)
       df_datefacturation <- character(rows)
@@ -2340,6 +2620,9 @@ shinyServer(function(input, output, session) {
     if (prove == "Adessa"){
       return(head(STG, 10))
     }
+    if (prove == "Plan Walmart"){
+      return(head(Impresion, 10))
+    }
     else{
     return(head(insert_sql, 10))}
   })
@@ -2360,7 +2643,7 @@ shinyServer(function(input, output, session) {
             nofacture_Quintec[[1]][1],
             nofacture_Quintec[[1]][2],
             m_totalSheet,
-            nofacture_Quintec[[1]][4],
+            nofacture_Quintec[[1]][3],
             sep = "-"
           )
         fact_name <- nofacture
@@ -2410,6 +2693,29 @@ shinyServer(function(input, output, session) {
     ,contentType = "application/zip"
   )
   
+  output$downloadDataPlan <- downloadHandler(
+    filename = 'PlanWalmart.zip',
+    content = function(fname) {
+      factmonth <- input$factmonth
+      factmonth_fix <- strsplit(as.character(factmonth), "-")
+      factmonth2 <-
+        paste0(factmonth_fix[[1]][1], factmonth_fix[[1]][2])
+      
+      setwd(getwd())
+      
+      fs <- c(paste(factmonth2,"Impresion.csv",sep = "_"), 
+              paste(factmonth2,"RelojControl.csv",sep = "_"), 
+              paste(factmonth2,"SoporteArriendo.csv",sep = "_"))
+      
+      write.csv2(Impresion, file = paste(factmonth2,"Impresion.csv",sep = "_"), quote = FALSE, row.names = FALSE)
+      write.csv2(RelojControl, file = paste(factmonth2,"RelojControl.csv",sep = "_"), quote = FALSE, row.names = FALSE)
+      write.csv2(SoporteArriendo, file = paste(factmonth2,"SoporteArriendo.csv",sep = "_"), quote = FALSE, row.names = FALSE)
+      
+      zip(zipfile=fname, files=fs)
+      if(file.exists(paste0(fname, ".zip"))) {file.rename(paste0(fname, ".zip"), fname)}
+    }
+    ,contentType = "application/zip"
+  )
 
   #In case a new provider was set change the verification button back to default
   observeEvent(input$Prov, {

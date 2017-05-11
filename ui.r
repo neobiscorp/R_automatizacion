@@ -742,9 +742,13 @@ shinyUI(
           conditionalPanel(
             condition = "input.final_exec",
             div(
-              style = "text-align: center",conditionalPanel(
-                condition = "input.Prov != 'Adessa'",
+              style = "text-align: center",
+              conditionalPanel(
+                condition = "input.Prov != 'Adessa' & input.Prov != 'Plan Walmart'",
               downloadButton('downloadData', 'Descargar CSV')),
+              conditionalPanel(
+                condition = "input.Prov == 'Plan Walmart'",
+                downloadButton('downloadDataPlan', 'Descargar CSV')),
               conditionalPanel(
                 condition = "input.Prov == 'Adessa'",
                 downloadButton('downloadDataAdessa', 'Descargar CSV')),
