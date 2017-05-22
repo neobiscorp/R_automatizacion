@@ -5,42 +5,44 @@ library(shinyBS)
 library(shinyjs)
 library(shinythemes)
 
-#Establish an SQL conection Function
-sqlQuery <- function (query) {
-  # creating DB connection object with RMysql package
-  DB <- dbConnect(MySQL(),
-                  user = "root",
-                  password = "",
-                  dbname = "neobis")
-  # send Query to btain result set
-  rs <- dbSendQuery(DB, query)
-  # get elements from result sets and convert to dataframe
-  result <- fetch(rs, -1)
-  # close db connection
-  dbDisconnect(DB)
-  # return the dataframe
-  return(result)
+if (.Platform$OS.type == "windows"){
+  #Establish an SQL conection Function
+  sqlQuery <- function (query) {
+    # creating DB connection object with RMysql package
+    DB <- dbConnect(MySQL(),
+                    user = "root",
+                    password = "",
+                    dbname = "neobis")
+    # send Query to btain result set
+    rs <- dbSendQuery(DB, query)
+    # get elements from result sets and convert to dataframe
+    result <- fetch(rs, -1)
+    # close db connection
+    dbDisconnect(DB)
+    # return the dataframe
+    return(result)
+  }
+} else {
+  #Establish an SQL conection Function for MAC
+  sqlQuery <- function (query) {
+    # creating DB connection object with RMysql package
+    DB <- dbConnect(MySQL(),
+                    user = "root",
+                    password = "",
+                    dbname = "neobis",
+                    host = "localhost",
+                    port = "8889",
+                    unix.socket= 'Aplications/MAMP/tmp/mysql/mysql.sock')
+    # send Query to btain result set
+    rs <- dbSendQuery(DB, query)
+    # get elements from result sets and convert to dataframe
+    result <- fetch(rs,-1)
+    # close db connection
+    dbDisconnect(DB)
+    # return the dataframe
+    return(result)
+  }
 }
-
-# #Establish an SQL conection Function for MAC
-# sqlQuery <- function (query) {
-#   # creating DB connection object with RMysql package
-#   DB <- dbConnect(MySQL(),
-#                   user = "root",
-#                   password = "",
-#                   dbname = "neobis",
-#                   host = "localhost"
-#                   port = "8889",
-#                   unix.socket= 'Aplications/MAMP/tmp/mysql/mysql.sock')
-#   # send Query to btain result set
-#   rs <- dbSendQuery(DB, query)
-#   # get elements from result sets and convert to dataframe
-#   result <- fetch(rs,-1)
-#   # close db connection
-#   dbDisconnect(DB)
-#   # return the dataframe
-#   return(result)
-# }
 
 #Query needed to get Clients
 clientes <-
@@ -243,6 +245,33 @@ shinyUI(
               id = "qQuintec",
               title = "Datos Quintec",
               content = "Seleccione si los datos a extraer son de la Base o Incorporaciones de Quintec.",
+              placement = "right",
+              trigger = "hover"
+            )
+          )
+        ),conditionalPanel(
+          condition = "input.Prov == 'Plan Walmart'",
+          div(
+            style = "display: inline-block; width: 96%;",
+            selectInput(
+              "PlanForecast",
+              label = h4(
+                "Seleccione si ingresara Forecast o Plan",
+                tags$style(type = "text/css", "#qPlanForecast {vertical-align: top;}"),
+                bsButton(
+                  "qPlanForecast",
+                  label = "",
+                  icon = icon("question"),
+                  style = "info",
+                  size = "extra-small"
+                )
+              ),
+              choices = c("Plan","Forecast")
+            ),
+            bsPopover(
+              id = "qPlanForecast",
+              title = "Tipo de Informacion Walmart",
+              content = "Seleccione si los datos a subir son del Forecast o del Plan Walmart.",
               placement = "right",
               trigger = "hover"
             )

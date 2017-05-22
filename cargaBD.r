@@ -1,5 +1,7 @@
 library(RMySQL)
 library(DBI)
+library(stringr)
+library(openxlsx)
 #Establish an SQL conection Function
 sqlQuery <- function (query) {
   # creating DB connection object with RMysql package
@@ -23,6 +25,12 @@ facturas <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\facturas.csv")
 
 rows_facturas <- NROW(facturas)
 
+y <- c("ene. "="01","feb. "="02","mar. "="03","abr. "="04","may. "="05","jun. "="06","jul. "="07","ago. "="08","sept."="09","oct. "="10","nov. "="11","dic. "="12")
+for(i in 1:12){
+  facturas$Mes.de.facturaciÃ³n <- gsub(names(y[i]),y[[i]],facturas$Mes.de.facturaciÃ³n)
+}
+facturas$Fecha <- paste(str_sub(facturas$Mes.de.facturaciÃ³n ,-4),str_sub(facturas$Mes.de.facturaciÃ³n ,1,2),"01",sep = "/")
+
 for (i in 1:rows_facturas) {
     sqlQuery(
       paste(
@@ -32,7 +40,7 @@ for (i in 1:rows_facturas) {
         ",",
         facturas$`Proveedor`[i],
         ",",
-        facturas$Mes.de.facturaciÃ³n[i],
+        facturas$Fecha[i],
         ",",
         facturas$Total.sin.impuestos[i],
         ",",
@@ -47,16 +55,19 @@ for (i in 1:rows_facturas) {
 uso_por_acc_201701 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201701_uso_por_acc.csv")
 uso_por_acc_201702 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201702_uso_por_acc.csv")
 uso_por_acc_201703 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201703_uso_por_acc.csv")
+uso_por_acc_201704 <- read.csv2("C:\\Users\\Neobis\\Downloads\\BI PA\\201704_uso_por_acc.csv")
 
 rows_201701 <- NROW(uso_por_acc_201701)
 rows_201702 <- NROW(uso_por_acc_201702)
 rows_201703 <- NROW(uso_por_acc_201703)
+rows_201704 <- NROW(uso_por_acc_201704)
 
-total<- rows_201701+rows_201702+rows_201703
+y <- c("ene. "="01","feb. "="02","mar. "="03","abr. "="04","may. "="05","jun. "="06","jul. "="07","ago. "="08","sept."="09","oct. "="10","nov. "="11","dic. "="12")
+for(i in 1:12){
+  uso_por_acc_201704$PerÃ.odo.de <- gsub(names(y[i]),y[[i]],uso_por_acc_201704$PerÃ.odo.de)
+}
+uso_por_acc_201704$Fecha <- paste(str_sub(uso_por_acc_201704$PerÃ.odo.de ,-4),str_sub(uso_por_acc_201704$PerÃ.odo.de ,1,2),"01",sep = "/")
 
-date_201701 <- "2017-01-01"
-date_201702 <- "2017-02-01"
-date_201703 <- "2017-03-01"
 
 for (i in 1:rows_201701) {
   
@@ -102,7 +113,7 @@ for (i in 1:rows_201701) {
         ",",
         uso_por_acc_201701$N.Â..Copias.Color[i],
         ",",
-        date_201701,
+        uso_por_acc_201701$Fecha,
         ")",
         sep = "'"
         )
@@ -152,7 +163,7 @@ for (i in 1:rows_201702) {
         ",",
         uso_por_acc_201702$N.Â..Copias.Color[i],
         ",",
-        date_201702,
+        uso_por_acc_201702$Fecha,
         ")",
         sep = "'"
         )
@@ -202,10 +213,61 @@ for (i in 1:rows_201703) {
         ",",
         uso_por_acc_201703$N.Â..Copias.Color[i],
         ",",
-        date_201703,
+        uso_por_acc_201703$Fecha,
         ")",
         sep = "'"
         )
+    )
+}
+
+for (i in 1:rows_201704) {
+  
+  sqlQuery(
+    paste(
+      "INSERT INTO `uso_por_acceso`(`ACCESO`, `PROVEEDOR`, `PAIS`, `Total (UF)`, `Plano tarifario (UF)`, `Uso (UF)`, `Servicios (UF)`, `Descuentos (UF)`, `Voz (UF)`, `Voz nacional (UF)`, `Voz inter. (UF)`, `Datos (UF)`, `Datos nac. (UF)`, `Datos inter. (UF)`, `SMS (UF)`, `MMS (UF)`, `N. Copias`, `N. Copias B/N`, `N. Copias Color`, `FECHA`)
+      VALUES (",
+      uso_por_acc_201704$ï..Acceso[i],
+      ",",
+      uso_por_acc_201704$Proveedor[i],
+      ",",
+      uso_por_acc_201704$PaÃ.s[i],
+      ",",
+      uso_por_acc_201704$Total..UF.[i],
+      ",",
+      uso_por_acc_201704$Plano.tarifario..UF.[i],
+      ",",
+      uso_por_acc_201704$Uso..UF.[i],
+      ",",
+      uso_por_acc_201704$Servicios..UF.[i],
+      ",",
+      uso_por_acc_201704$Descuentos..UF.[i],
+      ",",
+      uso_por_acc_201704$Voz..UF.[i],
+      ",",
+      uso_por_acc_201704$Voz.nacional..UF.[i],
+      ",",
+      uso_por_acc_201704$Voz.inter...UF.[i],
+      ",",
+      uso_por_acc_201704$Datos..UF.[i],
+      ",",
+      uso_por_acc_201704$Datos.nac...UF.[i],
+      ",",
+      uso_por_acc_201704$Datos.inter...UF.[i],
+      ",",
+      uso_por_acc_201704$SMS..UF.[i],
+      ",",
+      uso_por_acc_201704$MMS..UF.[i],
+      ",",
+      uso_por_acc_201704$N.Â..Copias[i],
+      ",",
+      uso_por_acc_201704$N.Â..Copias.B.N[i],
+      ",",
+      uso_por_acc_201704$N.Â..Copias.Color[i],
+      ",",
+      uso_por_acc_201704$Fecha,
+      ")",
+      sep = "'"
+      )
     )
 }
 
@@ -218,7 +280,9 @@ sqlQuery("update `uso_por_acceso` set
 sqlQuery("update `uso_por_acceso` set
          `N. Copias Color` = replace(`N. Copias Color`, '.', '')")
 
-library(openxlsx)
+
+
+# Abrir y guardar Archivo export soluciona bug
 
 file <- "C:\\Users\\Neobis\\Downloads\\BI PA\\Exp.xlsx"
 
@@ -235,6 +299,10 @@ ACCESSES <- read.xlsx(
   sheet = "ACCESSES",
   startRow = 1
 )
+
+ACCESSES$ACTIVATION.DATE <- as.Date(ACCESSES$ACTIVATION.DATE, origin = "1899-12-30")
+ACCESSES$EXPIRATION.DATE <- as.Date(ACCESSES$EXPIRATION.DATE, origin = "1899-12-30")
+
 DEVICES <- read.xlsx(
   file,
   sheet = "DEVICES",
@@ -257,11 +325,9 @@ rows_DEVICES <-NROW(DEVICES)
 rows_ASSOCIATIONS <-NROW(ASSOCIATIONS)
 rows_PRODUCT_ASSOCIATIONS <-NROW(PRODUCT_ASSOCIATIONS)
 
+# Eliminar filas Que uno quiera
+ACCESSES <- ACCESSES[ACCESSES$ACCESS.NUMBER!="444444449",]
 
-
-#
-#ELIMINAR COMILLAS DE HOJA USERS
-#
 
 for (i in 1:rows_USERS) {
   
@@ -279,17 +345,17 @@ for (i in 1:rows_USERS) {
         ",",
         USERS$STATUS[i],
         ",",
-        USERS$`MANAGEMENT_ORG:1`[i],
+        USERS$MANAGEMENT_ORG.1[i],
         ",",
-        USERS$`MANAGEMENT_ORG:2`[i],
+        USERS$MANAGEMENT_ORG.2[i],
         ",",
-        USERS$`MANAGEMENT_ORG:3`[i],
+        USERS$MANAGEMENT_ORG.3[i],
         ",",
-        USERS$`MANAGEMENT_ORG:4`[i],
+        USERS$MANAGEMENT_ORG.4[i],
         ",",
-        USERS$`SITE_ORG:1.1`[i],
+        USERS$SITE_ORG.1.1[i],
         ",",
-        USERS$`SITE_ORG:1.2`[i],
+        USERS$SITE_ORG.1.2[i],
         ")",
         sep = "'"
         )

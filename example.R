@@ -474,3 +474,33 @@ library(shinytest)
 # Launch the target app (replace with the correct path)
 recordTest("C:/Users/Neobis/workspace/R_automatizacion")
 
+
+file <- "C:\\Users\\Neobis\\Desktop\\Plan Walmart\\Base.xlsx"
+plandata <-
+  read.xlsx(
+    file,
+    sheet = 1,
+    startRow = 1,
+    cols = c(
+      1:6
+    )
+  )
+RelojControl <- filter(plandata, plandata$Servicio  == "RelojControl", grepl("_", CECO))
+
+d <- 5
+for(i in 1:10) { 
+  nam <- paste("A", i, sep = "")
+  assign(nam, rnorm(3)+d)
+}
+
+x <-"201601"
+substring(x,5)
+
+
+x<- Seteadora
+
+x[] <- lapply(x, function(x) str_replace(x, 'ñ', 'n'))
+
+x[x$noappel=='pathfinderviña1',10] <- 'pathfindervina1'
+
+write.table(rbind(ArriendoPC,Impresion,RelojControl,SoporteArriendo), "myDF.csv", sep = ";", col.names = TRUE, row.names = FALSE, append = T)
