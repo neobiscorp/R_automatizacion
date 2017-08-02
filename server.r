@@ -1022,14 +1022,13 @@ shinyServer(function(input, output, session) {
       if (prove == "Quintec Arriendo" |
           prove == "Quintec Soporte") {
         nofacture2 <- facture_name()
+        HojaQuintec <- input$HojaQuintec
         nofacture_Quintec <- strsplit(nofacture2, "-")
-        m_total <- strsplit(m_tot, " \\$ ")
-        m_totalSheet <- m_total[[1]][1]
         nofacture <-
           paste(
             nofacture_Quintec[[1]][1],
             nofacture_Quintec[[1]][2],
-            m_totalSheet,
+            HojaQuintec,
             nofacture_Quintec[[1]][3],
             sep = "-"
           )

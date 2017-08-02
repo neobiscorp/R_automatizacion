@@ -2,23 +2,20 @@ install.packages("shinyjs")
 install.packages("V8")
 
 .Machine$integer.max
-
-library(shiny)#
-library(XLConnect)#
-library(RMySQL)#
-library(openxlsx)#
-library(shinyBS)#
-library(shinyjs)#
-library(stringr)#
-library(readxl)#
-library(DBI)
-library(pool)
-library(shinythemes)#
-library(V8)
+library(shiny)
+library(RMySQL)
+library(shinyBS)
+library(shinyjs)
+library(shinythemes)
+library(RMySQL)
+library(openxlsx)
+library(stringr)
+library(readxl)
+library(dplyr)
 
 install.packages('devtools')
 
-install.packages(c('shiny','RMySQL','shinyBS','shinyjs','shinythemes','XLConnect','openxlsx','stringr','readxl','rmarkdown','DBI','pool','V8','devtools'))
+install.packages(c('shiny','RMySQL','shinyBS','shinyjs','shinythemes','RMySQL','openxlsx','stringr','readxl','rmarkdown','DBI','pool','V8','devtools','dplyr'))
 
 devtools::install_github("rstats-db/DBI")
 devtools::install_github("rstudio/pool")
